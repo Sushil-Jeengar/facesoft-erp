@@ -319,7 +319,7 @@ class _AddOrderPageState extends State<AddOrderPage> {
         value: selectedAgent,
         decoration: InputDecoration(
           prefixIcon: Icon(Icons.person, color: AppColors.primary),
-          labelText: 'Agent',
+          labelText: 'Agents',
           labelStyle: const TextStyle(color: AppColors.primary),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
           focusedBorder: OutlineInputBorder(
@@ -491,6 +491,7 @@ class _AddOrderPageState extends State<AddOrderPage> {
                         if (_formKey.currentState!.validate() &&
                             items.isNotEmpty &&
                             selectedAgent != null &&
+
                             selectedSupplier != null) {
                           // Print item details and supplier for debugging
                           // print('Supplier: $selectedSupplier');
