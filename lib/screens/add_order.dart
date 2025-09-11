@@ -1,3 +1,9 @@
+
+
+
+
+
+
 import 'package:facesoft/model/agent_model.dart';
 import 'package:facesoft/providers/agent_provider.dart';
 import 'package:facesoft/model/transport_model.dart';
@@ -11,7 +17,12 @@ import 'package:intl/intl.dart';
 import 'package:facesoft/style/app_style.dart';
 import 'package:facesoft/model/company_model.dart';
 import 'package:facesoft/providers/company_provider.dart';
+import 'package:facesoft/model/item_model.dart';
+import 'package:facesoft/providers/item_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:facesoft/screens/home_screen.dart';
 
 
 class AddOrderPage extends StatefulWidget {
@@ -45,6 +56,10 @@ class _AddOrderPageState extends State<AddOrderPage> {
   bool isAgentLoading = true;
   Agent? selectedAgent;
 
+  List<Map<String, dynamic>> items = [];
+  List<Item> allItems = [];
+  bool isItemsLoading = true;
+  String? selectedItemId;
 
   final _formKey = GlobalKey<FormState>();
 
@@ -58,22 +73,18 @@ class _AddOrderPageState extends State<AddOrderPage> {
 
   String paymentStatus = 'Paid';
 
-
-
-  // Predefined lists
   final List<String> itemParts = ['Part X', 'Part Y', 'Part Z'];
   final List<String> weightUnits = ['kg', 'gram', 'mg', 'Ton'];
-
-  final List<Map<String, dynamic>> items = [];
 
   void _addItem() {
     setState(() {
       items.add({
         'partName': null,
+        'partId': null,
         'quantity': TextEditingController(),
         'price': TextEditingController(),
         'weight': TextEditingController(),
-        'weightUnit': 'kg', // Default unit
+        'weightUnit': 'kg',
         'description1': TextEditingController(),
         'description2': TextEditingController(),
       });
@@ -319,7 +330,7 @@ class _AddOrderPageState extends State<AddOrderPage> {
         value: selectedAgent,
         decoration: InputDecoration(
           prefixIcon: Icon(Icons.person, color: AppColors.primary),
-          labelText: 'Agents',
+          labelText: 'Agent',
           labelStyle: const TextStyle(color: AppColors.primary),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
           focusedBorder: OutlineInputBorder(
@@ -355,15 +366,163 @@ class _AddOrderPageState extends State<AddOrderPage> {
     subtotalController.dispose();
     taxAmountController.dispose();
     for (var item in items) {
-      item['quantity']?.dispose();
-      item['price']?.dispose();
-      item['weight']?.dispose();
-      item['description1']?.dispose();
-      item['description2']?.dispose();
+      if (item['quantity'] is TextEditingController) {
+        (item['quantity'] as TextEditingController).dispose();
+      }
+      if (item['price'] is TextEditingController) {
+        (item['price'] as TextEditingController).dispose();
+      }
+      if (item['weight'] is TextEditingController) {
+        (item['weight'] as TextEditingController).dispose();
+      }
+      if (item['description1'] is TextEditingController) {
+        (item['description1'] as TextEditingController).dispose();
+      }
+      if (item['description2'] is TextEditingController) {
+        (item['description2'] as TextEditingController).dispose();
+      }
     }
     super.dispose();
   }
 
+
+  Future<void> _fetchItems() async {
+    try {
+      final itemProvider = Provider.of<ItemProvider>(context, listen: false);
+      await itemProvider.fetchItems();
+      setState(() {
+        allItems = itemProvider.items;
+        isItemsLoading = false;
+      });
+    } catch (e) {
+      setState(() => isItemsLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load items: $e')),
+        );
+      }
+    }
+  }
+
+  bool _isSubmitting = false;
+
+  Future<void> _submitOrder() async {
+    if (_isSubmitting) return;
+    
+    if (!_formKey.currentState!.validate() || 
+        items.isEmpty || 
+        selectedAgent == null || 
+        selectedSupplier == null ||
+        selectedParty == null ||
+        selectedCompany == null ||
+        selectedTransport == null) {
+      
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please fill all required fields and add at least one item!"),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+    
+    setState(() {
+      _isSubmitting = true;
+    });
+    
+    try {
+      final orderData = {
+        'user_id': 1, // Replace with actual user ID from auth
+        'company_id': selectedCompany!.id,
+        'party_id': selectedParty!.id,
+        'supplier_id': selectedSupplier!.id,
+        'transport_id': selectedTransport!.id,
+        'agent_id': selectedAgent!.id,
+        'order_number': orderNumberController.text,
+        'order_date': orderDateController.text,
+        'party_name': selectedParty!.title ?? selectedParty!.companyName ?? '',
+        'supplier': selectedSupplier!.title ?? selectedSupplier!.companyName ?? '',
+        'transport': selectedTransport!.transportName ?? '',
+        'delivery_address': deliveryAddressController.text,
+        'payment_status': paymentStatus,
+        'choose_agent': selectedAgent!.agentName ?? '',
+        'description_1': '', // Add these fields to your form if needed
+        'description_2': '',
+        'discount': double.tryParse(discountController.text) ?? 0.0,
+        'subtotal': double.tryParse(subtotalController.text) ?? 0.0,
+        'tax_amount': double.tryParse(taxAmountController.text) ?? 0.0,
+        'grand_total': double.tryParse(grandTotalController.text) ?? 0.0,
+        'status': true,
+        'icon': {
+          'name': 'shopping-cart',
+          'library': 'fontawesome',
+          'svg': '<svg>...</svg>',
+          'displayName': 'Shopping Cart'
+        },
+        'order_items': items.map((item) => {
+          'id': item['partId'],
+          'name': allItems.firstWhere(
+            (i) => i.id == item['partId'],
+            orElse: () => Item(id: -1, name: 'Unknown'),
+          ).name,
+          'price': item['price']?.text ?? '0.00',
+          'weight': item['weight']?.text ?? '0.00',
+          'quantity': int.tryParse(item['quantity']?.text ?? '0') ?? 0,
+          'unit': item['weightUnit'] ?? 'kg',
+          'description_1': item['description1']?.text ?? '',
+          'description_2': item['description2']?.text ?? '',
+        }).toList(),
+      };
+
+      final response = await http.post(
+        Uri.parse('http://192.168.1.169:5000/v1/api/admin/orders'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(orderData),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (mounted) {
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Order created successfully!'),
+              duration: Duration(seconds: 1),
+            ),
+          );
+          
+          // Wait for the snackbar to complete
+          await Future.delayed(const Duration(seconds: 1));
+          
+          // Navigate back to home screen with a clean navigation stack
+          if (mounted) {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => const HomeScreen()),
+              (Route<dynamic> route) => false,
+            );
+          }
+          }
+        } else {
+          throw Exception('Failed to create order: ${response.statusCode} - ${response.body}');
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error creating order: ${e.toString()}'),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+        debugPrint('Error creating order: $e');
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isSubmitting = false;
+          });
+        }
+      }
+  }
 
   @override
   void initState() {
@@ -373,7 +532,11 @@ class _AddOrderPageState extends State<AddOrderPage> {
     _fetchSuppliers();
     _fetchTransports();
     _fetchAgents();
+    _fetchItems();
+    // Set initial order number (you can customize this logic)
+    orderNumberController.text = 'ORD-${DateTime.now().year}-${DateTime.now().millisecondsSinceEpoch.toString().substring(6)}';
   }
+
 
 
   @override
@@ -486,44 +649,13 @@ class _AddOrderPageState extends State<AddOrderPage> {
                   const SizedBox(height: 20),
                   SizedBox(
                     width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (_formKey.currentState!.validate() &&
-                            items.isNotEmpty &&
-                            selectedAgent != null &&
-
-                            selectedSupplier != null) {
-                          // Print item details and supplier for debugging
-                          // print('Supplier: $selectedSupplier');
-                          for (var i = 0; i < items.length; i++) {
-                            // final item = items[i];
-                            // print(
-                            //   'Item ${i + 1} - Name: ${item['partName']}, '
-                            //   'Quantity: ${item['quantity'].text}, '
-                            //   'Price: ${item['price'].text}, '
-                            //   'Weight: ${item['weight'].text} ${item['weightUnit']}, '
-                            //   'Description 1: ${item['description1'].text}, '
-                            //   'Description 2: ${item['description2'].text}',
-                            // );
-                          }
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Order submitted successfully!"),
-                            ),
-                          );
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                "Please add at least one item, select an agent, and select a supplier!",
-                              ),
-                            ),
-                          );
-                        }
-                      },
-                      style: AppButtonStyles.primaryButton,
-                      child: const Text(
-                        "Submit Order",
+                    child: _isSubmitting
+                        ? const CircularProgressIndicator()
+                        : ElevatedButton(
+                            onPressed: _isSubmitting ? null : _submitOrder,
+                            style: AppButtonStyles.primaryButton,
+                            child: Text(
+                              "Submit Order",
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -641,29 +773,52 @@ class _AddOrderPageState extends State<AddOrderPage> {
       child: Column(
         children: [
           // Item Name Dropdown
-          DropdownButtonFormField<String>(
-            value: item['partName'],
-            decoration: InputDecoration(
-              labelText: 'Item Name',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              prefixIcon: const Icon(
-                Icons.description,
-                color: AppColors.primary,
-              ),
-              labelStyle: const TextStyle(color: AppColors.primary),
-            ),
-            items:
-                itemParts
-                    .map(
-                      (part) =>
-                          DropdownMenuItem(value: part, child: Text(part)),
-                    )
-                    .toList(),
-            onChanged: (val) => setState(() => item['partName'] = val),
-            validator: (val) => val == null ? 'Select Item Name' : null,
-          ),
+          isItemsLoading
+              ? const CircularProgressIndicator()
+              : DropdownButtonFormField<String>(
+                  value: item['partId']?.toString(),
+                  decoration: InputDecoration(
+                    labelText: 'Item Name',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.inventory_2,
+                      color: AppColors.primary,
+                    ),
+                    labelStyle: const TextStyle(color: AppColors.primary),
+                  ),
+                  items: allItems.map((item) {
+                    return DropdownMenuItem<String>(
+                      value: item.id.toString(),
+                      child: Text(item.name),
+                    );
+                  }).toList(),
+                  onChanged: (val) {
+                    if (val != null) {
+                      final selected = allItems.firstWhere(
+                        (element) => element.id.toString() == val,
+                        orElse: () => Item(id: -1, name: 'Unknown'),
+                      );
+                      setState(() {
+                        item['partId'] = selected.id;
+                        item['partName'] = selected.name;
+                        // Auto-fill price if available
+                        if (selected.price != null &&
+                            selected.price!.isNotEmpty) {
+                          item['price'].text = selected.price!;
+                        }
+                        if (selected.weight != null &&
+                            selected.weight!.isNotEmpty) {
+                          item['weight'].text = selected.weight!;
+                        }
+                        _updateTotals();
+                      });
+                    }
+                  },
+                  validator: (val) =>
+                      val == null ? 'Please select an item' : null,
+                ),
           const SizedBox(height: 8),
           // Quantity and Price Row
           Row(
@@ -706,7 +861,7 @@ class _AddOrderPageState extends State<AddOrderPage> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     prefixIcon: const Icon(
-                      Icons.currency_rupee,
+                      Icons.attach_money,
                       color: AppColors.primary,
                     ),
                     labelStyle: const TextStyle(color: AppColors.primary),
