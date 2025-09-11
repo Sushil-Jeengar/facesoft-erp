@@ -705,7 +705,7 @@ class _AddOrderPageState extends State<AddOrderPage> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     prefixIcon: const Icon(
-                      Icons.attach_money,
+                      Icons.currency_rupee,
                       color: AppColors.primary,
                     ),
                     labelStyle: const TextStyle(color: AppColors.primary),

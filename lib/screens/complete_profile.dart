@@ -5,10 +5,13 @@ import 'package:image_picker/image_picker.dart';
 import 'package:country_picker/country_picker.dart';
 import 'package:flutter/services.dart';
 import 'package:facesoft/style/app_style.dart';
+import 'package:facesoft/model/user_profile_model.dart';
 import 'package:facesoft/screens/company_profile.dart';
+import 'package:facesoft/API_services/user_api.dart';
 
 class CompleteProfile extends StatefulWidget {
-  const CompleteProfile({super.key});
+  final UserProfile? initialProfile;
+  const CompleteProfile({super.key, this.initialProfile});
 
   @override
   State<CompleteProfile> createState() => _CompleteProfileState();
@@ -27,6 +30,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
   final TextEditingController _cityController = TextEditingController();
   final TextEditingController _pincodeController = TextEditingController();
   final TextEditingController _phoneCodeController = TextEditingController(text: '+91');
+  final TextEditingController _bioController = TextEditingController();
 
   String _country = '';
   String _state = '';
@@ -36,6 +40,13 @@ class _CompleteProfileState extends State<CompleteProfile> {
   final ImagePicker _picker = ImagePicker();
   Country _selectedPhoneCountry = Country.parse('IN');
   List<dynamic>? _countriesData;
+  String? _selectedGender;
+
+  @override
+  void initState() {
+    super.initState();
+    _prefillFromProfile(widget.initialProfile);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -120,6 +131,24 @@ class _CompleteProfileState extends State<CompleteProfile> {
                     ),
                     const SizedBox(height: 20),
 
+                    // Gender
+                    DropdownButtonFormField<String>(
+                      value: _selectedGender,
+                      decoration: _inputDecoration("Gender", icon: Icons.wc),
+                      items: const [
+                        DropdownMenuItem(value: 'Male', child: Text('Male')),
+                        DropdownMenuItem(value: 'Female', child: Text('Female')),
+                        DropdownMenuItem(value: 'Other', child: Text('Other')),
+                      ],
+                      onChanged: (String? value) {
+                        setState(() {
+                          _selectedGender = value;
+                        });
+                      },
+                      validator: (value) => value == null || value.isEmpty ? 'Select gender' : null,
+                    ),
+                    const SizedBox(height: 20),
+
                     // Phone Number with Country Code
                     Padding(
                       padding: const EdgeInsets.only(bottom: 16),
@@ -183,6 +212,15 @@ class _CompleteProfileState extends State<CompleteProfile> {
                     ),
                     const SizedBox(height: 20),
 
+                    // Bio (optional)
+                    TextFormField(
+                      controller: _bioController,
+                      keyboardType: TextInputType.multiline,
+                      maxLines: 3,
+                      decoration: _inputDecoration("Bio (optional)", icon: Icons.notes),
+                    ),
+                    const SizedBox(height: 20),
+
                     // Country
                     Padding(
                       padding: const EdgeInsets.only(bottom: 16),
@@ -242,16 +280,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () {
-                          if (_formKey.currentState!.validate()) {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const CompanyProfileForm(),
-                              ),
-                            );
-                          }
-                        },
+                        onPressed: _onSubmit,
                         style: AppButtonStyles.primaryButton,
                         child: Text(
                           "Continue",
@@ -272,7 +301,8 @@ class _CompleteProfileState extends State<CompleteProfile> {
   // Input Decoration Helper
   InputDecoration _inputDecoration(String hint, {IconData? icon}) {
     return InputDecoration(
-      hintText: hint,
+      labelText: hint,
+      labelStyle: TextStyle(color: AppColors.primary),
       filled: true,
       fillColor: Colors.white,
       hintStyle: TextStyle(color: AppColors.primary.withOpacity(0.6)),
@@ -476,5 +506,150 @@ class _CompleteProfileState extends State<CompleteProfile> {
     _countriesData = List<dynamic>.from(
       ( json.decode(jsonString) as List<dynamic>),
     );
+  }
+
+  void _prefillFromProfile(UserProfile? profile) {
+    if (profile == null) return;
+    _firstNameController.text = profile.firstName ?? '';
+    _lastNameController.text = profile.lastName ?? '';
+    _usernameController.text = profile.userName ?? '';
+    _emailController.text = profile.email ?? '';
+    _addressController.text = profile.address ?? '';
+    _countryController.text = profile.country ?? '';
+    _stateController.text = profile.state ?? '';
+    _cityController.text = profile.city ?? '';
+    _bioController.text = profile.bio ?? '';
+
+    if (profile.pincode != null) {
+      _pincodeController.text = profile.pincode.toString();
+    }
+
+    // Normalize gender values such as m/f/y to Male/Female/Other
+    _selectedGender = _normalizeGender(profile.gender);
+
+    // Attempt to split phone with country code if present
+    final String rawPhone = profile.phoneNumber ?? '';
+    final String digitsOnly = rawPhone.replaceAll(RegExp(r'[^0-9+]'), '');
+    final String justDigits = digitsOnly.replaceAll('+', '');
+    if (justDigits.length >= 10) {
+      final String localPart = justDigits.substring(justDigits.length - 10);
+      final String countryCodeDigits = justDigits.substring(0, justDigits.length - 10);
+      _phoneController.text = localPart;
+      if (countryCodeDigits.isNotEmpty) {
+        _phoneCode = '+$countryCodeDigits';
+        _phoneCodeController.text = _phoneCode;
+      }
+    } else if (justDigits.isNotEmpty) {
+      _phoneController.text = justDigits;
+    }
+  }
+
+  String? _normalizeGender(String? value) {
+    if (value == null) return null;
+    final String v = value.trim().toLowerCase();
+    if (v == 'm' || v == 'male') return 'Male';
+    if (v == 'f' || v == 'female') return 'Female';
+    if (v == 'o' || v == 'other' || v == 'y') return 'Other';
+    return 'Other';
+  }
+
+  Future<void> _onSubmit() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final scaffold = ScaffoldMessenger.of(context);
+    try {
+      final int? id = widget.initialProfile?.id;
+      if (id == null) {
+        scaffold.showSnackBar(const SnackBar(content: Text('Missing user id')));
+        return;
+      }
+
+      final Map<String, dynamic> changed = _computeChangedFields(widget.initialProfile);
+      if (changed.isEmpty && _profileImage == null) {
+        scaffold.showSnackBar(const SnackBar(content: Text('No changes to update')));
+        return;
+      }
+
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(child: CircularProgressIndicator()),
+      );
+
+      final bool ok = await UserService.updateUserProfilePartial(
+        id,
+        changed,
+        imageFile: _profileImage,
+      );
+
+      if (mounted) Navigator.of(context).pop();
+
+      if (ok) {
+        if (mounted) {
+          scaffold.showSnackBar(const SnackBar(content: Text('Profile updated successfully')));
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const CompanyProfileForm()),
+          );
+        }
+      } else {
+        scaffold.showSnackBar(const SnackBar(content: Text('Failed to update profile')));
+      }
+    } catch (e) {
+      if (mounted) Navigator.of(context).pop();
+      scaffold.showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
+  }
+
+  Map<String, dynamic> _computeChangedFields(UserProfile? original) {
+    final Map<String, dynamic> changed = {};
+    if (original == null) return changed;
+
+    void setIfChanged(String key, dynamic oldValue, dynamic newValue) {
+      if (newValue != oldValue && !(newValue == null && oldValue == '')) {
+        changed[key] = newValue;
+      }
+    }
+
+    setIfChanged('first_name', original.firstName, _firstNameController.text.trim());
+    setIfChanged('last_name', original.lastName, _lastNameController.text.trim());
+    setIfChanged('user_name', original.userName, _usernameController.text.trim());
+    setIfChanged('email', original.email, _emailController.text.trim());
+    setIfChanged('address', original.address, _addressController.text.trim());
+    setIfChanged('country', original.country, _countryController.text.trim());
+    setIfChanged('state', original.state, _stateController.text.trim());
+    setIfChanged('city', original.city, _cityController.text.trim());
+
+    final String fullPhone = _composeFullPhone();
+    setIfChanged('phone_number', original.phoneNumber, fullPhone);
+
+    final int? pin = _pincodeController.text.isNotEmpty ? int.tryParse(_pincodeController.text) : null;
+    setIfChanged('pincode', original.pincode, pin);
+
+    final String? genderForApi = _mapGenderToApi(_selectedGender);
+    setIfChanged('gender', original.gender, genderForApi);
+
+    final String bio = _bioController.text.trim();
+    setIfChanged('bio', original.bio, bio.isEmpty ? null : bio);
+
+    return changed;
+  }
+
+  String _composeFullPhone() {
+    final String code = _phoneCode.startsWith('+') ? _phoneCode : '+$_phoneCode';
+    final String local = _phoneController.text.trim();
+    return '$code$local';
+  }
+
+  String? _mapGenderToApi(String? uiValue) {
+    if (uiValue == null) return null;
+    switch (uiValue) {
+      case 'Male':
+        return 'm';
+      case 'Female':
+        return 'f';
+      default:
+        return 'y';
+    }
   }
 }

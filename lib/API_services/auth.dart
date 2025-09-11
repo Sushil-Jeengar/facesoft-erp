@@ -62,11 +62,11 @@ class AuthService {
         final decoded = jsonDecode(response.body);
         return AuthData.fromJson(decoded);
       } else {
-        log('Failed to verify OTP: ${response.statusCode}');
+        print('Failed to verify OTP: ${response.statusCode}');
         return null; // ya throw exception, apni choice
       }
     } catch (e) {
-      log('Network error: $e');
+      print('Network error: $e');
       return null;  // ya throw exception
     }
   }

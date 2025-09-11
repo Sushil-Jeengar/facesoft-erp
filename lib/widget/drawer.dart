@@ -1,4 +1,3 @@
-import 'package:facesoft/API_services/user_api.dart';
 import 'package:facesoft/providers/user_profile_provider.dart';
 import 'package:facesoft/screens/complete_profile.dart';
 import 'package:flutter/material.dart';
@@ -110,7 +109,10 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => CompleteProfile(),
+                        builder: (context) {
+                          final userProfileProvider = Provider.of<UserProfileProvider>(context, listen: false);
+                          return CompleteProfile(initialProfile: userProfileProvider.userProfile);
+                        },
                       ),
                     );
                   },

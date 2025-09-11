@@ -112,96 +112,98 @@ class _AddItemPageState extends State<AddItemPage> {
                     Icons.fastfood_outlined,
                     TextInputType.text,
                   ),
-                  // Quantity
-                  _buildInput(
-                    _item['quantityController'],
-                    'Quantity',
-                    Icons.numbers,
-                    TextInputType.number,
-                        (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Enter Quantity';
-                      }
-                      if (int.tryParse(value) == null || int.parse(value) <= 0) {
-                        return 'Enter a valid positive number';
-                      }
-                      return null;
-                    },
-                  ),
+                  // Quantity (commented out to send only name)
+                  // _buildInput(
+                  //   _item['quantityController'],
+                  //   'Quantity',
+                  //   Icons.numbers,
+                  //   TextInputType.number,
+                  //       (value) {
+                  //     if (value == null || value.isEmpty) {
+                  //       return 'Enter Quantity';
+                  //     }
+                  //     if (int.tryParse(value) == null || int.parse(value) <= 0) {
+                  //       return 'Enter a valid positive number';
+                  //     }
+                  //     return null;
+                  //   },
+                  // ),
 
                   // Weight & Unit
-                  Row(
-                    children: [
-                      // Weight Field
-                      Expanded(
-                        child: _buildInput(
-                          _item['weightController'],
-                          'Weight',
-                          Icons.monitor_weight,
-                          TextInputType.number,
-                              (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Enter Weight';
-                            }
-                            if (double.tryParse(value) == null || double.parse(value) <= 0) {
-                              return 'Enter a valid positive weight';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      // Unit Dropdown
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: 16),
-                          child: DropdownButtonFormField<String>(
-                            value: _selectedUnit,
-                            decoration: InputDecoration(
-                              labelText: 'Unit',
-                              labelStyle: const TextStyle(color: AppColors.primary),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: const BorderSide(color: AppColors.primary),
-                              ),
-                            ),
-                            items: ['mg', 'Gram', 'Kg', 'Ton']
-                                .map((unit) => DropdownMenuItem(
-                              value: unit,
-                              child: Text(unit),
-                            ))
-                                .toList(),
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedUnit = value;
-                              });
-                            },
-                            validator: (value) => value == null ? 'Select a unit' : null,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                  // Weight & Unit (commented out to send only name)
+                  // Row(
+                  //   children: [
+                  //     // Weight Field
+                  //     Expanded(
+                  //       child: _buildInput(
+                  //         _item['weightController'],
+                  //         'Weight',
+                  //         Icons.monitor_weight,
+                  //         TextInputType.number,
+                  //             (value) {
+                  //           if (value == null || value.isEmpty) {
+                  //             return 'Enter Weight';
+                  //           }
+                  //           if (double.tryParse(value) == null || double.parse(value) <= 0) {
+                  //             return 'Enter a valid positive weight';
+                  //           }
+                  //           return null;
+                  //         },
+                  //       ),
+                  //     ),
+                  //     const SizedBox(width: 10),
+                  //     // Unit Dropdown
+                  //     Expanded(
+                  //       child: Padding(
+                  //         padding: const EdgeInsets.only(bottom: 16),
+                  //         child: DropdownButtonFormField<String>(
+                  //           value: _selectedUnit,
+                  //           decoration: InputDecoration(
+                  //             labelText: 'Unit',
+                  //             labelStyle: const TextStyle(color: AppColors.primary),
+                  //             border: OutlineInputBorder(
+                  //               borderRadius: BorderRadius.circular(10),
+                  //             ),
+                  //             focusedBorder: OutlineInputBorder(
+                  //               borderRadius: BorderRadius.circular(10),
+                  //               borderSide: const BorderSide(color: AppColors.primary),
+                  //             ),
+                  //           ),
+                  //           items: ['mg', 'Gram', 'Kg', 'Ton']
+                  //               .map((unit) => DropdownMenuItem(
+                  //             value: unit,
+                  //             child: Text(unit),
+                  //           ))
+                  //               .toList(),
+                  //           onChanged: (value) {
+                  //             setState(() {
+                  //               _selectedUnit = value;
+                  //             });
+                  //           },
+                  //           validator: (value) => value == null ? 'Select a unit' : null,
+                  //         ),
+                  //       ),
+                  //     ),
+                  //   ],
+                  // ),
 
                   // Price
-                  _buildInput(
-                    _item['priceController'],
-                    'Price (₹)',
-                    Icons.attach_money,
-                    TextInputType.number,
-                        (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Enter Price';
-                      }
-                      if (double.tryParse(value) == null || double.parse(value) <= 0) {
-                        return 'Enter a valid positive price';
-                      }
-                      return null;
-                    },
-                  ),
+                  // Price (commented out to send only name)
+                  // _buildInput(
+                  //   _item['priceController'],
+                  //   'Price (₹)',
+                  //   Icons.attach_money,
+                  //   TextInputType.number,
+                  //       (value) {
+                  //     if (value == null || value.isEmpty) {
+                  //       return 'Enter Price';
+                  //     }
+                  //     if (double.tryParse(value) == null || double.parse(value) <= 0) {
+                  //       return 'Enter a valid positive price';
+                  //     }
+                  //     return null;
+                  //   },
+                  // ),
                   const SizedBox(height: 16),
                   // Save Button
                   SizedBox(
@@ -214,10 +216,10 @@ class _AddItemPageState extends State<AddItemPage> {
                           Item itemToSave = Item(
                             id: widget.item?.id, // Include id if editing
                             name: _item['nameController'].text,
-                            quantity: int.tryParse(_item['quantityController'].text),
-                            unit: _item['unitController'].text,
-                            weight: _item['weightController'].text,
-                            price: _item['priceController'].text,
+                            // quantity: int.tryParse(_item['quantityController'].text),
+                            // unit: _item['unitController'].text,
+                            // weight: _item['weightController'].text,
+                            // price: _item['priceController'].text,
                           );
 
                           // Call createItem or updateItem based on whether an item is provided
