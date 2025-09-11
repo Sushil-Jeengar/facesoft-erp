@@ -12,14 +12,18 @@ class SupplierProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  Future<void> fetchSuppliers() async {
+  Future<void> fetchSuppliers({int? userId}) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
     try {
       final fetchedSuppliers = await SupplierApiService.fetchSuppliers();
       if (fetchedSuppliers != null) {
-        _suppliers = fetchedSuppliers;
+        if (userId != null) {
+          _suppliers = fetchedSuppliers.where((s) => s.userId == userId).toList();
+        } else {
+          _suppliers = fetchedSuppliers;
+        }
       } else {
         _errorMessage = "Failed to load suppliers";
       }

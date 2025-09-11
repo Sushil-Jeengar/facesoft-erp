@@ -1,6 +1,7 @@
 import 'package:facesoft/model/company_model.dart';
 import 'package:facesoft/providers/company_provider.dart';
 import 'package:facesoft/style/app_style.dart';
+import 'package:facesoft/providers/auth_provider.dart';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -25,7 +26,11 @@ class _CompanyOverviewCardState extends State<CompanyOverviewCard> {
     // Fetch companies when the widget is first created
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = Provider.of<CompanyProvider>(context, listen: false);
-      provider.fetchCompanies().then((_) {
+      int? userId;
+      try {
+        userId = Provider.of<AuthProvider>(context, listen: false).authData?.user.id;
+      } catch (_) {}
+      provider.fetchCompanies(userId: userId).then((_) {
         if (mounted) {
           setState(() {
             _isLoading = false;

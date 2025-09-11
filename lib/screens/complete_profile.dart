@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:facesoft/form/company.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:country_picker/country_picker.dart';
@@ -8,6 +9,9 @@ import 'package:facesoft/style/app_style.dart';
 import 'package:facesoft/model/user_profile_model.dart';
 import 'package:facesoft/screens/company_profile.dart';
 import 'package:facesoft/API_services/user_api.dart';
+import 'package:provider/provider.dart';
+
+import '../providers/auth_provider.dart';
 
 class CompleteProfile extends StatefulWidget {
   final UserProfile? initialProfile;
@@ -586,10 +590,17 @@ class _CompleteProfileState extends State<CompleteProfile> {
 
       if (ok) {
         if (mounted) {
-          scaffold.showSnackBar(const SnackBar(content: Text('Profile updated successfully')));
+          // ✅ Save to SharedPreferences before navigation
+          final authProvider = Provider.of<AuthProvider>(context, listen: false);
+          await authProvider.saveAuthDataToLocal();
+
+          scaffold.showSnackBar(
+            const SnackBar(content: Text('Profile updated successfully')),
+          );
+
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const CompanyProfileForm()),
+            MaterialPageRoute(builder: (context) => const AddCompanyPage()),
           );
         }
       } else {
@@ -600,6 +611,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
       scaffold.showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
+
 
   Map<String, dynamic> _computeChangedFields(UserProfile? original) {
     final Map<String, dynamic> changed = {};

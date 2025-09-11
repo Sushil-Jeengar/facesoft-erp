@@ -7,6 +7,8 @@ import 'package:provider/provider.dart';
 import 'package:facesoft/screens/complete_profile.dart';
 import 'package:facesoft/style/app_style.dart';
 import 'package:facesoft/API_services/auth.dart';
+import 'package:facesoft/API_services/user_api.dart';
+import 'package:facesoft/model/user_profile_model.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -108,17 +110,56 @@ class _LoginScreenState extends State<LoginScreen> {
 
                         final authData = await AuthService.verifyOtp(args);
                         if (authData != null) {
-
-                          Provider.of<AuthProvider>(context, listen: false).setAuthData(authData);
+                          final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                          authProvider.setAuthData(authData); // ✅ Only in provider (not saved yet)
 
                           Navigator.pop(context);
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const CompleteProfile(),
-                            ),
-                          );
-                        } else {
+
+                          try {
+                            final int userId = authData.user.id;
+                            final resp = await UserService.getUserById(userId);
+
+                            if (resp['success'] == true && resp['data'] != null) {
+                              final profile = UserProfile.fromJson(resp['data']);
+                              final String? email = profile.email;
+                              final String? phone = profile.phoneNumber;
+                              final bool hasEmail = email != null && email.toString().trim().isNotEmpty;
+                              final bool hasPhone = phone != null && phone.toString().trim().isNotEmpty;
+
+                              if (hasEmail && hasPhone) {
+                                // ✅ Both present → Save permanently before going Home
+                                await authProvider.saveAuthDataToLocal();
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const HomeScreen()),
+                                );
+                              } else {
+                                // ❌ Missing either email or phone → Just go to CompleteProfile
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => CompleteProfile(initialProfile: profile),
+                                  ),
+                                );
+                              }
+                            } else {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const CompleteProfile(),
+                                ),
+                              );
+                            }
+                          } catch (_) {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const CompleteProfile(),
+                              ),
+                            );
+                          }
+                        }
+                        else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('OTP Verification failed')),
                           );

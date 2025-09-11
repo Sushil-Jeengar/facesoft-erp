@@ -4,6 +4,7 @@ import 'package:facesoft/providers/agent_provider.dart';
 import 'package:facesoft/model/agent_model.dart';
 import 'package:facesoft/style/app_style.dart';
 import 'package:facesoft/form/agent.dart';
+import 'package:facesoft/providers/auth_provider.dart';
 
 class AgentPage extends StatefulWidget {
   const AgentPage({super.key});
@@ -21,7 +22,8 @@ class _AgentPageState extends State<AgentPage> {
     super.initState();
     // Fetch agents when the page loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<AgentProvider>(context, listen: false).fetchAgents();
+      final userId = Provider.of<AuthProvider>(context, listen: false).authData?.user.id;
+      Provider.of<AgentProvider>(context, listen: false).fetchAgents(userId: userId);
     });
     _searchController.addListener(_filterAgents);
   }

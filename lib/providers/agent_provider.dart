@@ -9,14 +9,18 @@ class AgentProvider with ChangeNotifier {
   List<Agent> get agents => _agents;
   bool get isLoading => _isLoading;
 
-  Future<void> fetchAgents() async {
+  Future<void> fetchAgents({int? userId}) async {
     _isLoading = true;
     notifyListeners();
 
     try {
       final fetchedAgents = await AgentApiService.fetchAgents();
       if (fetchedAgents != null) {
-        _agents = fetchedAgents;
+        if (userId != null) {
+          _agents = fetchedAgents.where((a) => a.userId == userId).toList();
+        } else {
+          _agents = fetchedAgents;
+        }
       }
     } catch (e) {
       // Handle error (e.g., show a snackbar in the UI)

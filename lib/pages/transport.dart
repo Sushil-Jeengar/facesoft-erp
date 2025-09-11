@@ -5,6 +5,7 @@ import 'package:facesoft/style/app_style.dart';
 import 'package:facesoft/model/transport_model.dart';
 import 'package:facesoft/providers/transport_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:facesoft/providers/auth_provider.dart';
 
 class TransportPage extends StatefulWidget {
   const TransportPage({super.key});
@@ -29,7 +30,9 @@ class _TransportPageState extends State<TransportPage> {
     // Refresh data when the page is revisited
     final transportProvider = Provider.of<TransportProvider>(context, listen: false);
     if (transportProvider.transports.isEmpty) {
-      transportProvider.fetchTransports();
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      final userId = auth.authData?.user.id;
+      transportProvider.fetchTransports(userId: userId);
     } else {
       _filterTransports();
     }

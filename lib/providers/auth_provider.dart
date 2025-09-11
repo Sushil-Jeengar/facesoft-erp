@@ -9,25 +9,26 @@ class AuthProvider with ChangeNotifier {
   AuthData? _authData;
 
   AuthData? get authData => _authData;
-
   bool get isLoggedIn => _authData != null;
 
+  /// Just set in memory (provider only)
   void setAuthData(AuthData data) {
     _authData = data;
-    _saveToLocal(data);
     notifyListeners();
+  }
+
+  /// Explicit save to SharedPreferences (call manually)
+  Future<void> saveAuthDataToLocal() async {
+    if (_authData == null) return;
+    final prefs = await SharedPreferences.getInstance();
+    final jsonString = jsonEncode(_authData!.toJson());
+    await prefs.setString('auth_data', jsonString);
   }
 
   void clearAuthData() {
     _authData = null;
     _clearFromLocal();
     notifyListeners();
-  }
-
-  Future<void> _saveToLocal(AuthData data) async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonString = jsonEncode(data.toJson());
-    await prefs.setString('auth_data', jsonString);
   }
 
   Future<void> _clearFromLocal() async {
@@ -45,3 +46,4 @@ class AuthProvider with ChangeNotifier {
     }
   }
 }
+

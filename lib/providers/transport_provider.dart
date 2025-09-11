@@ -13,14 +13,18 @@ class TransportProvider with ChangeNotifier {
   String? get error => _error;
 
   // Fetch all transports
-  Future<void> fetchTransports() async {
+  Future<void> fetchTransports({int? userId}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
     try {
       final transports = await TransportApiService.fetchTransports();
       if (transports != null) {
-        _transports = transports;
+        if (userId != null) {
+          _transports = transports.where((t) => t.userId == userId).toList();
+        } else {
+          _transports = transports;
+        }
       } else {
         _error = 'Failed to load transports';
       }

@@ -12,14 +12,18 @@ class PartyProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  Future<void> fetchParties() async {
+  Future<void> fetchParties({int? userId}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
     try {
       final result = await PartiesApiService.fetchParties();
       if (result != null) {
-        _parties = result;
+        if (userId != null) {
+          _parties = result.where((p) => p.userId == userId).toList();
+        } else {
+          _parties = result;
+        }
       } else {
         _error = "Failed to load parties";
       }

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:facesoft/providers/company_provider.dart';
 import 'package:facesoft/form/company.dart';
 import 'package:facesoft/style/app_style.dart';
+import 'package:facesoft/providers/auth_provider.dart';
 
 class CompanyPage extends StatefulWidget {
   const CompanyPage({super.key});
@@ -18,7 +19,14 @@ class _CompanyPageState extends State<CompanyPage> {
     // Fetch companies when the widget is first created
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = Provider.of<CompanyProvider>(context, listen: false);
-      provider.fetchCompanies();
+      // Try to read logged-in user id from AuthProvider if available
+      try {
+        final auth = Provider.of<AuthProvider>(context, listen: false);
+        final userId = auth.authData?.user.id;
+        provider.fetchCompanies(userId: userId);
+      } catch (_) {
+        provider.fetchCompanies();
+      }
     });
   }
 

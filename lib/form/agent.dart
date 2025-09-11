@@ -48,6 +48,7 @@
     Country selectedCountry = Country.parse('IN');
   Country selectedPhoneCountry = Country.parse('IN');
     List<dynamic>? _countriesData;
+    bool _isSaving = false;
 
     @override
     void initState() {
@@ -685,7 +686,8 @@
                       width: double.infinity,
                       child: ElevatedButton(
                         style: AppButtonStyles.primaryButton,
-                        onPressed: () async {
+                        onPressed: _isSaving ? null : () async {
+                          setState(() => _isSaving = true);
                           if (_formKey.currentState!.validate()) {
                             final authProvider = Provider.of<AuthProvider>(context, listen: false);
                             final userId = authProvider.authData?.user.id;
@@ -696,6 +698,7 @@
                                   backgroundColor: Colors.red,
                                 ),
                               );
+                              setState(() => _isSaving = false);
                               return;
                             }
 
@@ -787,11 +790,21 @@
                               );
                             }
                           }
+                          setState(() => _isSaving = false);
                         },
-                        child: Text(
-                          "Save Agent",
-                          style: AppTextStyles.primaryButton,
-                        ),
+                        child: _isSaving
+                            ? const SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Text(
+                                "Save Agent",
+                                style: AppTextStyles.primaryButton,
+                              ),
                       ),
                     ),
                   ],

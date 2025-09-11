@@ -4,6 +4,7 @@ import 'package:facesoft/style/app_style.dart';
 import 'package:facesoft/form/supplier.dart';
 import 'package:facesoft/model/supplier_model.dart';
 import 'package:facesoft/providers/supplier_provider.dart';
+import 'package:facesoft/providers/auth_provider.dart';
 
 class SupplierPage extends StatefulWidget {
   const SupplierPage({super.key});
@@ -20,7 +21,8 @@ class _SupplierPageState extends State<SupplierPage> {
   void initState() {
     super.initState();
     Future.microtask(() {
-      context.read<SupplierProvider>().fetchSuppliers();
+      final userId = context.read<AuthProvider>().authData?.user.id;
+      context.read<SupplierProvider>().fetchSuppliers(userId: userId);
     });
     _searchController.addListener(_filterSuppliers);
   }

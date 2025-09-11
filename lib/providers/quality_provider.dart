@@ -9,13 +9,17 @@ class QualityProvider with ChangeNotifier {
   List<Quality> get qualities => _qualities;
   bool get isLoading => _isLoading;
 
-  Future<void> fetchQualities() async {
+  Future<void> fetchQualities({int? userId}) async {
     _isLoading = true;
     notifyListeners();
     try {
       final fetchedQualities = await QualityApiService.fetchQualities();
       if (fetchedQualities != null) {
-        _qualities = fetchedQualities;
+        if (userId != null) {
+          _qualities = fetchedQualities.where((q) => q.userId == userId).toList();
+        } else {
+          _qualities = fetchedQualities;
+        }
       }
     } catch (e) {
       rethrow;

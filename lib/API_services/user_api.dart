@@ -5,25 +5,6 @@ import 'dart:io';
 
 class UserService {
 
-  static Future<List<int>> fetchUserIds() async {
-    final response = await http.get(
-      Uri.parse(API_Data.user),
-    );
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      if (data['success'] == true) {
-        final users = data['data'] as List<dynamic>;
-        final ids = users.map((user) => user['id'] as int).toList();
-        return ids;
-      } else {
-        throw Exception('Failed to load user data: ${data['message']}');
-      }
-    } else {
-      throw Exception('Failed to load user data: ${response.statusCode}');
-    }
-  }
-
   static Future<Map<String, dynamic>> getUserById(int userId) async {
     final response = await http.get(Uri.parse('${API_Data.user}/$userId'));
 

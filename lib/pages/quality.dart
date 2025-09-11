@@ -4,6 +4,7 @@
   import 'package:facesoft/style/app_style.dart';
   import 'package:facesoft/model/quality_model.dart';
   import 'package:facesoft/providers/quality_provider.dart';
+  import 'package:facesoft/providers/auth_provider.dart';
   
   class QualityPage extends StatefulWidget {
 
@@ -21,7 +22,9 @@
     void initState() {
       super.initState();
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        Provider.of<QualityProvider>(context, listen: false).fetchQualities();
+        final auth = Provider.of<AuthProvider>(context, listen: false);
+        final userId = auth.authData?.user.id;
+        Provider.of<QualityProvider>(context, listen: false).fetchQualities(userId: userId);
       });
       _searchController.addListener(_filterQualities);
     }

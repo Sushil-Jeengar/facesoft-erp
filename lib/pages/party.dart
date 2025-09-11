@@ -5,6 +5,7 @@ import 'package:facesoft/style/app_style.dart';
 import 'package:facesoft/screens/home_screen.dart';
 import 'package:facesoft/providers/party_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:facesoft/providers/auth_provider.dart';
 
 class PartyPage extends StatefulWidget {
   const PartyPage({super.key});
@@ -22,7 +23,9 @@ class _PartyPageState extends State<PartyPage> {
     super.initState();
     _searchController.addListener(_filterParties);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<PartyProvider>(context, listen: false).fetchParties();
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      final userId = auth.authData?.user.id;
+      Provider.of<PartyProvider>(context, listen: false).fetchParties(userId: userId);
     });
   }
 

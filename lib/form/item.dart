@@ -26,6 +26,7 @@ class _AddItemPageState extends State<AddItemPage> {
   };
 
   String? _selectedUnit;
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -210,7 +211,8 @@ class _AddItemPageState extends State<AddItemPage> {
                     width: double.infinity,
                     child: ElevatedButton(
                       style: AppButtonStyles.primaryButton,
-                      onPressed: () async {
+                      onPressed: _isSaving ? null : () async {
+                        setState(() => _isSaving = true);
                         if (_item['formKey'].currentState!.validate()) {
                           // Create an Item object from the form data
                           Item itemToSave = Item(
@@ -244,11 +246,21 @@ class _AddItemPageState extends State<AddItemPage> {
                             );
                           }
                         }
+                        setState(() => _isSaving = false);
                       },
-                      child: Text(
-                        widget.item == null ? 'Save Item' : 'Update Item',
-                        style: AppTextStyles.primaryButton,
-                      ),
+                      child: _isSaving
+                          ? const SizedBox(
+                              height: 24,
+                              width: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Text(
+                              widget.item == null ? 'Save Item' : 'Update Item',
+                              style: AppTextStyles.primaryButton,
+                            ),
                     ),
                   ),
                 ],

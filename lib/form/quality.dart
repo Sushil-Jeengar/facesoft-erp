@@ -24,6 +24,7 @@ class _AddQualityPageState extends State<AddQualityPage> {
   late final TextEditingController gsmController;
   late final TextEditingController widthController;
   late bool status;
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -122,7 +123,8 @@ class _AddQualityPageState extends State<AddQualityPage> {
                     width: double.infinity,
                     child: ElevatedButton(
                       style: AppButtonStyles.primaryButton,
-                      onPressed: () async {
+                      onPressed: _isSaving ? null : () async {
+                        setState(() => _isSaving = true);
                         if (_formKey.currentState!.validate()) {
                           final authProvider = Provider.of<AuthProvider>(context, listen: false);
                           final userId = authProvider.authData?.user.id;
@@ -207,13 +209,22 @@ class _AddQualityPageState extends State<AddQualityPage> {
                               ),
                             );
                           }
+                          setState(() => _isSaving = false);
                         }
                       },
-
-                      child: Text(
-                        widget.quality == null ? "Save Quality" : "Update Quality",
-                        style: AppTextStyles.primaryButton,
-                      ),
+                      child: _isSaving
+                          ? const SizedBox(
+                              height: 24,
+                              width: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Text(
+                              widget.quality == null ? "Save Quality" : "Update Quality",
+                              style: AppTextStyles.primaryButton,
+                            ),
                     ),
                   ),
                 ],

@@ -23,15 +23,21 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           // Center: App Logo
           Image.asset('assets/images/FaceLogoE.png', height: 60, width: 100),
 
+          Container(
+            height: 10,
+            width: 10,
+            color: Colors.white,
+          )
+
           // Right: Notifications
-          IconButton(
-            icon: const Icon(Icons.notifications_none, color: Colors.black),
-            onPressed: () {
-              // // Go to Notification Page
-              // Navigator.push(context, MaterialPageRoute(
-              //   builder: (_) => const NotificationPage()));
-            },
-          ),
+          // IconButton(
+          //   icon: const Icon(Icons.notifications_none, color: Colors.black),
+          //   onPressed: () {
+          //     // // Go to Notification Page
+          //     // Navigator.push(context, MaterialPageRoute(
+          //     //   builder: (_) => const NotificationPage()));
+          //   },
+          // ),
         ],
       ),
     );

@@ -30,6 +30,7 @@ class _AddTransportPageState extends State<AddTransportPage> {
   String phoneCode = '+91';
   Country selectedCountry = Country.parse('IN');
   bool status = true;
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -215,7 +216,8 @@ class _AddTransportPageState extends State<AddTransportPage> {
                     width: double.infinity,
                     child: ElevatedButton(
                       style: AppButtonStyles.primaryButton,
-                      onPressed: () async {
+                      onPressed: _isSaving ? null : () async {
+                        setState(() => _isSaving = true);
                         if (!_formKey.currentState!.validate()) return;
                         
                         final transportProvider = Provider.of<TransportProvider>(context, listen: false);
@@ -303,11 +305,21 @@ class _AddTransportPageState extends State<AddTransportPage> {
                             ),
                           );
                         }
+                        setState(() => _isSaving = false);
                       },
-                      child: Text(
-                        widget.transport != null ? 'Update Transport' : 'Save Transport',
-                        style: AppTextStyles.primaryButton,
-                      ),
+                      child: _isSaving
+                          ? const SizedBox(
+                              height: 24,
+                              width: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Text(
+                              widget.transport != null ? 'Update Transport' : 'Save Transport',
+                              style: AppTextStyles.primaryButton,
+                            ),
                     ),
                   ),
                 ],

@@ -13,8 +13,8 @@ class CompanyProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  // Fetch all companies
-  Future<void> fetchCompanies() async {
+  // Fetch all companies; optionally filter by userId
+  Future<void> fetchCompanies({int? userId}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -22,7 +22,11 @@ class CompanyProvider with ChangeNotifier {
     try {
       final companies = await CompanyApiService.fetchCompanies();
       if (companies != null) {
-        _companies = companies;
+        if (userId != null) {
+          _companies = companies.where((c) => c.userId == userId).toList();
+        } else {
+          _companies = companies;
+        }
       } else {
         _error = 'Failed to load companies';
       }
