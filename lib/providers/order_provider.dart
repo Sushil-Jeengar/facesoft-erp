@@ -11,14 +11,22 @@ class OrderProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String get errorMessage => _errorMessage;
 
-  Future<void> fetchOrders() async {
+  Future<void> fetchOrders({int? userId}) async {
     _isLoading = true;
     _errorMessage = '';
     notifyListeners();
 
     try {
-      final fetchedOrders = await OrderApiService.fetchOrders();
-      _orders = fetchedOrders ?? [];
+      final fetchedOrders = await OrderApiService.fetchOrders(userId: userId);
+      if (fetchedOrders != null) {
+        if (userId != null) {
+          _orders = fetchedOrders.where((order) => order.userId == userId).toList();
+        } else {
+          _orders = fetchedOrders;
+        }
+      } else {
+        _orders = [];
+      }
     } catch (e) {
       _errorMessage = 'Failed to load orders: $e';
       _orders = [];

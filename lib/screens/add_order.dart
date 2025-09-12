@@ -25,6 +25,7 @@ import 'dart:convert';
 import 'package:facesoft/screens/home_screen.dart';
 import 'package:facesoft/model/order_model.dart';
 import 'package:facesoft/API_services/order_api.dart';
+import 'package:facesoft/providers/auth_provider.dart';
 
 
 class AddOrderPage extends StatefulWidget {
@@ -495,8 +496,22 @@ class _AddOrderPageState extends State<AddOrderPage> {
     });
     
     try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final userId = authProvider.authData?.user.id;
+      
+      if (userId == null) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("User not authenticated. Please log in again."),
+            duration: Duration(seconds: 2),
+          ),
+        );
+        return;
+      }
+      
       final orderData = {
-        'user_id': 1, // Replace with actual user ID from auth
+        'user_id': userId,
         'company_id': selectedCompany!.id,
         'party_id': selectedParty!.id,
         'supplier_id': selectedSupplier!.id,

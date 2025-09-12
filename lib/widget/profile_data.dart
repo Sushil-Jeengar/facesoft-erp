@@ -2,18 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:facesoft/providers/company_provider.dart';
 import 'package:facesoft/providers/order_provider.dart';
+import 'package:facesoft/providers/auth_provider.dart';
 
 class DashboardCard extends StatelessWidget {
   const DashboardCard({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<CompanyProvider, OrderProvider>(
-      builder: (context, companyProvider, orderProvider, _) {
+    return Consumer3<CompanyProvider, OrderProvider, AuthProvider>(
+      builder: (context, companyProvider, orderProvider, authProvider, _) {
         // Fetch orders if not already loaded
         if (orderProvider.orders.isEmpty && !orderProvider.isLoading) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            orderProvider.fetchOrders();
+            final userId = authProvider.authData?.user.id;
+            orderProvider.fetchOrders(userId: userId);
           });
         }
 

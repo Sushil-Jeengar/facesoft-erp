@@ -4,9 +4,13 @@ import 'package:facesoft/model/order_model.dart';
 import 'package:http/http.dart' as http;
 
 class OrderApiService {
-  static Future<List<Order>?> fetchOrders() async {
+  static Future<List<Order>?> fetchOrders({int? userId}) async {
     try {
-      final response = await http.get(Uri.parse(API_Data.orders));
+      Uri uri = userId != null 
+          ? Uri.parse('${API_Data.orders}?user_id=$userId')
+          : Uri.parse(API_Data.orders);
+          
+      final response = await http.get(uri);
       print("Status Code: ${response.statusCode}");
       //print("Raw Body: ${response.body}");
 
@@ -14,9 +18,16 @@ class OrderApiService {
         final decoded = json.decode(response.body);
         if (decoded['success'] == true && decoded['data'] != null) {
           print("Parsed orders data successfully");
-          return (decoded['data'] as List)
+          List<Order> orders = (decoded['data'] as List)
               .map((json) => Order.fromJson(json))
               .toList();
+              
+          // Additional client-side filtering if needed
+          if (userId != null) {
+            orders = orders.where((order) => order.userId == userId).toList();
+          }
+          
+          return orders;
         } else {
           print("API responded with success=false or missing data");
           return [];
@@ -26,7 +37,7 @@ class OrderApiService {
         return null;
       }
     } catch (e) {
-      print("Exception caught: $e");
+      print("Exception caught in fetchOrders: $e");
       return null;
     }
   }
@@ -43,16 +54,14 @@ class OrderApiService {
       );
       print("Update Status Code: ${response.statusCode}");
       if (response.statusCode == 200) {
-
         final decoded = json.decode(response.body);
         return decoded['success'] == true;
-      }
-      // Some backends return 201 or 204 on update
-      if (response.statusCode == 201 || response.statusCode == 204) {
+      } else if (response.statusCode == 201 || response.statusCode == 204) {
         return true;
+      } else {
+        print("HTTP Error: ${response.statusCode}");
+        return false;
       }
-      print('Update failed: ${response.statusCode} - ${response.body}');
-      return false;
     } catch (e) {
       print("Exception caught in updateOrder: $e");
       return false;
@@ -73,7 +82,7 @@ class OrderApiService {
         return false;
       }
     } catch (e) {
-      print("Exception caught: $e");
+      print("Exception caught in deleteOrder: $e");
       return false;
     }
   }

@@ -5,6 +5,7 @@ import 'package:facesoft/providers/order_provider.dart';
 import 'package:facesoft/model/order_model.dart';
 import 'package:facesoft/pages/order_detail_page.dart';
 import 'package:facesoft/screens/add_order.dart';
+import 'package:facesoft/providers/auth_provider.dart';
 
 class OrderPage extends StatefulWidget {
   final void Function(int) onTabSelected;
@@ -29,7 +30,9 @@ class _OrderPageState extends State<OrderPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<OrderProvider>(context, listen: false).fetchOrders();
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final userId = authProvider.authData?.user.id;
+      Provider.of<OrderProvider>(context, listen: false).fetchOrders(userId: userId);
     });
     _searchController.addListener(_onSearchChanged);
   }
@@ -452,7 +455,11 @@ class _OrderPageState extends State<OrderPage> {
                 Text(orderProvider.errorMessage, style: const TextStyle(color: Colors.red)),
                 const SizedBox(height: 16),
                 ElevatedButton(
-                  onPressed: () => orderProvider.fetchOrders(),
+                  onPressed: () {
+                    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                    final userId = authProvider.authData?.user.id;
+                    orderProvider.fetchOrders(userId: userId);
+                  },
                   child: const Text('Retry'),
                 ),
               ],
@@ -700,7 +707,9 @@ class _OrderPageState extends State<OrderPage> {
                                               ),
                                             ).then((_) {
                                               // Refresh the orders list when returning from edit
-                                              Provider.of<OrderProvider>(context, listen: false).fetchOrders();
+                                              final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                                              final userId = authProvider.authData?.user.id;
+                                              Provider.of<OrderProvider>(context, listen: false).fetchOrders(userId: userId);
                                             });
                                           },
                                           tooltip: 'Edit Order',
