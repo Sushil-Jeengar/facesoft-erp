@@ -4,10 +4,12 @@ import 'package:facesoft/style/app_style.dart';
 import 'package:facesoft/providers/order_provider.dart';
 import 'package:facesoft/model/order_model.dart';
 import 'package:facesoft/pages/order_detail_page.dart';
+import 'package:facesoft/screens/add_order.dart';
 
 class OrderPage extends StatefulWidget {
   final void Function(int) onTabSelected;
-  const OrderPage({super.key, required this.onTabSelected});
+  final void Function(Order order)? onEditOrder;
+  const OrderPage({super.key, required this.onTabSelected, this.onEditOrder});
 
   @override
   State<OrderPage> createState() => _OrderPageState();
@@ -690,11 +692,16 @@ class _OrderPageState extends State<OrderPage> {
                                             size: 20,
                                           ),
                                           onPressed: () {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(
-                                                content: Text("Edit ${order.orderNumber}"),
+                                            // Navigate to AddOrderPage with the order to edit
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) => AddOrderPage(editingOrder: order),
                                               ),
-                                            );
+                                            ).then((_) {
+                                              // Refresh the orders list when returning from edit
+                                              Provider.of<OrderProvider>(context, listen: false).fetchOrders();
+                                            });
                                           },
                                           tooltip: 'Edit Order',
                                           padding: EdgeInsets.zero,

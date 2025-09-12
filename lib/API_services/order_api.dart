@@ -31,6 +31,33 @@ class OrderApiService {
     }
   }
 
+  static Future<bool> updateOrder({
+    required int orderId,
+    required Map<String, dynamic> body,
+  }) async {
+    try {
+      final response = await http.put(
+        Uri.parse('${API_Data.orders}/$orderId'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(body),
+      );
+      print("Update Status Code: ${response.statusCode}");
+      if (response.statusCode == 200) {
+
+        final decoded = json.decode(response.body);
+        return decoded['success'] == true;
+      }
+      // Some backends return 201 or 204 on update
+      if (response.statusCode == 201 || response.statusCode == 204) {
+        return true;
+      }
+      print('Update failed: ${response.statusCode} - ${response.body}');
+      return false;
+    } catch (e) {
+      print("Exception caught in updateOrder: $e");
+      return false;
+    }
+  }
 
   static Future<bool> deleteOrder(String orderId) async {
     try {

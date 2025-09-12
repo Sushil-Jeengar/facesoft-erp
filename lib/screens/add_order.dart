@@ -23,10 +23,13 @@ import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:facesoft/screens/home_screen.dart';
+import 'package:facesoft/model/order_model.dart';
+import 'package:facesoft/API_services/order_api.dart';
 
 
 class AddOrderPage extends StatefulWidget {
-  const AddOrderPage({super.key});
+  final Order? editingOrder; // when non-null, page is in edit mode
+  const AddOrderPage({super.key, this.editingOrder});
 
   @override
   State<AddOrderPage> createState() => _AddOrderPageState();
@@ -119,6 +122,15 @@ class _AddOrderPageState extends State<AddOrderPage> {
           .where((n) => n.isNotEmpty && seen.add(n))
           .toList();
       isLoading = false;
+      // Preselect company in edit mode
+      if (widget.editingOrder != null &&
+          widget.editingOrder!.companyId != null &&
+          companies.isNotEmpty) {
+        final matches = companies.where((c) => c.id == widget.editingOrder!.companyId);
+        if (matches.isNotEmpty) {
+          selectedCompany = matches.first;
+        }
+      }
     });
   }
 
@@ -129,6 +141,14 @@ class _AddOrderPageState extends State<AddOrderPage> {
     setState(() {
       parties = provider.parties;
       isPartyLoading = false;
+      if (widget.editingOrder != null &&
+          widget.editingOrder!.partyId != null &&
+          parties.isNotEmpty) {
+        final matches = parties.where((p) => p.id == widget.editingOrder!.partyId);
+        if (matches.isNotEmpty) {
+          selectedParty = matches.first;
+        }
+      }
     });
   }
 
@@ -138,6 +158,14 @@ class _AddOrderPageState extends State<AddOrderPage> {
     setState(() {
       suppliers = provider.suppliers;
       isSupplierLoading = false;
+      if (widget.editingOrder != null &&
+          widget.editingOrder!.supplierId != null &&
+          suppliers.isNotEmpty) {
+        final matches = suppliers.where((s) => s.id == widget.editingOrder!.supplierId);
+        if (matches.isNotEmpty) {
+          selectedSupplier = matches.first;
+        }
+      }
     });
   }
 
@@ -147,6 +175,14 @@ class _AddOrderPageState extends State<AddOrderPage> {
     setState(() {
       transports = provider.transports;
       isTransportLoading = false;
+      if (widget.editingOrder != null &&
+          widget.editingOrder!.transportId != null &&
+          transports.isNotEmpty) {
+        final matches = transports.where((t) => t.id == widget.editingOrder!.transportId);
+        if (matches.isNotEmpty) {
+          selectedTransport = matches.first;
+        }
+      }
     });
   }
 
@@ -156,6 +192,14 @@ class _AddOrderPageState extends State<AddOrderPage> {
     setState(() {
       agents = provider.agents;
       isAgentLoading = false;
+      if (widget.editingOrder != null &&
+          widget.editingOrder!.agentId != null &&
+          agents.isNotEmpty) {
+        final matches = agents.where((a) => a.id == widget.editingOrder!.agentId);
+        if (matches.isNotEmpty) {
+          selectedAgent = matches.first;
+        }
+      }
     });
   }
 
@@ -390,9 +434,28 @@ class _AddOrderPageState extends State<AddOrderPage> {
     try {
       final itemProvider = Provider.of<ItemProvider>(context, listen: false);
       await itemProvider.fetchItems();
+      
       setState(() {
         allItems = itemProvider.items;
         isItemsLoading = false;
+        
+        // If in edit mode and we have items to pre-select
+        if (widget.editingOrder != null && widget.editingOrder!.items != null) {
+          for (var i = 0; i < items.length; i++) {
+            final item = items[i];
+            if (item['partId'] != null) {
+              // Find the matching item in allItems
+              final matchedItem = allItems.firstWhere(
+                (i) => i.id == item['partId'],
+                orElse: () => Item(id: -1, name: ''),
+              );
+              if (matchedItem.id != -1) {
+                // Update the partName in the items list
+                items[i]['partName'] = matchedItem.name;
+              }
+            }
+          }
+        }
       });
     } catch (e) {
       setState(() => isItemsLoading = false);
@@ -461,13 +524,13 @@ class _AddOrderPageState extends State<AddOrderPage> {
           'displayName': 'Shopping Cart'
         },
         'order_items': items.map((item) => {
-          'id': item['partId'],
-          'name': allItems.firstWhere(
+          'item_id': item['partId'],
+          'item_name': allItems.firstWhere(
             (i) => i.id == item['partId'],
             orElse: () => Item(id: -1, name: 'Unknown'),
           ).name,
-          'price': item['price']?.text ?? '0.00',
-          'weight': item['weight']?.text ?? '0.00',
+          'price': double.tryParse(item['price']?.text ?? '0') ?? 0.0,
+          'weight': double.tryParse(item['weight']?.text ?? '0') ?? 0.0,
           'quantity': int.tryParse(item['quantity']?.text ?? '0') ?? 0,
           'unit': item['weightUnit'] ?? 'kg',
           'description_1': item['description1']?.text ?? '',
@@ -475,53 +538,76 @@ class _AddOrderPageState extends State<AddOrderPage> {
         }).toList(),
       };
 
-      final response = await http.post(
-        Uri.parse('http://192.168.1.169:5000/v1/api/admin/orders'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(orderData),
-      );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        if (mounted) {
-          // Show success message
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Order created successfully!'),
-              duration: Duration(seconds: 1),
-            ),
-          );
-          
-          // Wait for the snackbar to complete
-          await Future.delayed(const Duration(seconds: 1));
-          
-          // Navigate back to home screen with a clean navigation stack
+      if (widget.editingOrder != null && widget.editingOrder!.id != null) {
+        // EDIT MODE → PUT update
+        // Some backends don't accept order-level description fields; strip them on update
+        final updateBody = Map<String, dynamic>.from(orderData)
+          ..remove('description_1')
+          ..remove('description_2');
+        final success = await OrderApiService.updateOrder(
+          orderId: widget.editingOrder!.id!,
+          body: updateBody,
+        );
+        if (success) {
           if (mounted) {
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (context) => const HomeScreen()),
-              (Route<dynamic> route) => false,
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Order updated successfully!'), duration: Duration(seconds: 1)),
             );
+            await Future.delayed(const Duration(seconds: 1));
+            if (mounted) {
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => const HomeScreen()),
+                (Route<dynamic> route) => false,
+              );
+            }
           }
+        } else {
+          throw Exception('Failed to update order');
+        }
+      } else {
+        // CREATE MODE → POST new
+        final response = await http.post(
+          Uri.parse('http://192.168.1.169:5000/v1/api/admin/orders'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(orderData),
+        );
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Order created successfully!'),
+                duration: Duration(seconds: 1),
+              ),
+            );
+            await Future.delayed(const Duration(seconds: 1));
+            if (mounted) {
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => const HomeScreen()),
+                (Route<dynamic> route) => false,
+              );
+            }
           }
         } else {
           throw Exception('Failed to create order: ${response.statusCode} - ${response.body}');
         }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error creating order: ${e.toString()}'),
-              duration: const Duration(seconds: 3),
-            ),
-          );
-        }
-        debugPrint('Error creating order: $e');
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isSubmitting = false;
-          });
-        }
       }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+      debugPrint('Order submit error: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+    }
   }
 
   @override
@@ -533,8 +619,43 @@ class _AddOrderPageState extends State<AddOrderPage> {
     _fetchTransports();
     _fetchAgents();
     _fetchItems();
-    // Set initial order number (you can customize this logic)
-    orderNumberController.text = 'ORD-${DateTime.now().year}-${DateTime.now().millisecondsSinceEpoch.toString().substring(6)}';
+
+    if (widget.editingOrder != null) {
+      // Prefill fields in edit mode
+      final o = widget.editingOrder!;
+      orderNumberController.text = o.orderNumber ?? '';
+      orderDateController.text = o.orderDate != null ? DateFormat('yyyy-MM-dd').format(o.orderDate!) : '';
+      deliveryAddressController.text = o.deliveryAddress ?? '';
+      paymentStatus = o.paymentStatus ?? paymentStatus;
+
+      // Discount/Subtotal/Tax/Grand Total may be strings in model
+      discountController.text = o.discount?.toString() ?? '';
+      subtotalController.text = o.subtotal?.toString() ?? '';
+      taxAmountController.text = o.taxAmount?.toString() ?? '';
+      grandTotalController.text = o.grandTotal?.toString() ?? '';
+
+      // Prefill items
+      if (o.items != null && o.items!.isNotEmpty) {
+        for (final it in o.items!) {
+          final itemMap = {
+            'partName': it.itemName,
+            'partId': it.itemId,
+            'quantity': TextEditingController(text: (it.quantity ?? 0).toString()),
+            'price': TextEditingController(text: (it.price ?? 0).toString()),
+            'weight': TextEditingController(text: (it.weight ?? 0).toString()),
+            'weightUnit': it.unit ?? 'kg',
+            'description1': TextEditingController(text: it.description1 ?? ''),
+            'description2': TextEditingController(text: it.description2 ?? ''),
+          };
+          items.add(itemMap);
+        }
+        // Update totals after prefill
+        WidgetsBinding.instance.addPostFrameCallback((_) => _updateTotals());
+      }
+    } else {
+      // Set initial order number for create mode
+      orderNumberController.text = 'ORD-${DateTime.now().year}-${DateTime.now().millisecondsSinceEpoch.toString().substring(6)}';
+    }
   }
 
 
@@ -655,7 +776,7 @@ class _AddOrderPageState extends State<AddOrderPage> {
                             onPressed: _isSubmitting ? null : _submitOrder,
                             style: AppButtonStyles.primaryButton,
                             child: Text(
-                              "Submit Order",
+                              widget.editingOrder != null ? "Update Order" : "Submit Order",
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -766,6 +887,28 @@ class _AddOrderPageState extends State<AddOrderPage> {
   }
 
   Widget _buildItemInput(int index, Map<String, dynamic> item) {
+    // Get the current item's name if it exists
+    String? currentItemName = item['partName'];
+    
+    // Find the current item in allItems if we have a partId
+    Item? currentItem;
+    if (item['partId'] != null) {
+      currentItem = allItems.firstWhere(
+        (i) => i.id == item['partId'],
+        orElse: () => Item(name: 'Loading...', id: item['partId']), // Changed to use item['partId']
+      );
+      
+      // If we found the item and it has a name, use it
+      if (currentItem.name != null && currentItem.name!.isNotEmpty) {
+        currentItemName = currentItem.name;
+        // Update the item in the items list
+        items[index]['partName'] = currentItemName;
+      } else if (item['partName'] != null) {
+        // If we have a partName from the order, use it
+        currentItemName = item['partName'];
+      }
+    }
+    
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
@@ -787,13 +930,21 @@ class _AddOrderPageState extends State<AddOrderPage> {
                       color: AppColors.primary,
                     ),
                     labelStyle: const TextStyle(color: AppColors.primary),
+                    hintText: currentItemName ?? 'Select an item',
                   ),
-                  items: allItems.map((item) {
-                    return DropdownMenuItem<String>(
-                      value: item.id.toString(),
-                      child: Text(item.name),
-                    );
-                  }).toList(),
+                  items: [
+                    // First add the current item if it exists but not in allItems
+                    if (item['partId'] != null && !allItems.any((i) => i.id == item['partId']) && currentItemName != null)
+                      DropdownMenuItem<String>(
+                        value: item['partId'].toString(),
+                        child: Text(currentItemName),
+                      ),
+                    // Then add all other items
+                    ...allItems.map((i) => DropdownMenuItem<String>(
+                      value: i.id.toString(),
+                      child: Text(i.name),
+                    )),
+                  ],
                   onChanged: (val) {
                     if (val != null) {
                       final selected = allItems.firstWhere(
@@ -802,7 +953,7 @@ class _AddOrderPageState extends State<AddOrderPage> {
                       );
                       setState(() {
                         item['partId'] = selected.id;
-                        item['partName'] = selected.name;
+                        item['partName'] = selected.name ?? 'Unknown';
                         // Auto-fill price if available
                         if (selected.price != null &&
                             selected.price!.isNotEmpty) {

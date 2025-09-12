@@ -6,6 +6,7 @@ import 'package:facesoft/screens/order.dart';
 import 'package:facesoft/style/app_style.dart';
 import 'package:facesoft/widget/app_bar.dart';
 import 'package:facesoft/widget/drawer.dart';
+import 'package:facesoft/model/order_model.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,6 +18,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int currentIndex = 0;
   final scaffoldKey = GlobalKey<ScaffoldState>();
+  Order? _editingOrder;
 
   @override
   Widget build(BuildContext context) {
@@ -32,8 +34,14 @@ class _HomeScreenState extends State<HomeScreen> {
         onTabSelected: (index) {
           setState(() => currentIndex = index);
         },
+        onEditOrder: (order) {
+          setState(() {
+            _editingOrder = order;
+            currentIndex = 2; // Navigate to AddOrderPage tab
+          });
+        },
       ),
-      const AddOrderPage(),
+      AddOrderPage(editingOrder: _editingOrder),
       CompanyPage(),
     ];
 
