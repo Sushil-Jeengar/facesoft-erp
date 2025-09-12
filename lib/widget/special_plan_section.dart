@@ -78,7 +78,7 @@ class _SpecialPlanSectionState extends State<SpecialPlanSection> {
 
         // Horizontal Scroll
         SizedBox(
-          height: 320,
+          height: 220,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: plans.length,
@@ -152,46 +152,56 @@ class _SpecialPlanSectionState extends State<SpecialPlanSection> {
                         ),
                         const SizedBox(height: 8),
 
-                        // Trial Button (only if not active)
-                        if (plan['status'] != true)
-                          SizedBox(
-                            width: double.infinity,
-                            child: OutlinedButton(
-                              onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text("Free Trial Activated"),
+                        // Buttons Row
+                        Row(
+                          children: [
+                            // Purchase Button
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const PaymentPage(),
+                                    ),
+                                  );
+                                },
+                                style: AppButtonStyles.primaryButton,
+                                child: const Text(
+                                  "Purchase",
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
                                   ),
-                                );
-                              },
-                              style: AppButtonStyles.secondaryButton,
-                              child: const Text(
-                                "Free Trial",
-                                style: AppTextStyles.secondryButton,
+                                ),
                               ),
                             ),
-                          ),
-
-                        const SizedBox(height: 6),
-
-                        // Purchase Button
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const PaymentPage(),
+                            
+                            // Add spacing between buttons if both are visible
+                            if (plan['status'] != true) const SizedBox(width: 8),
+                            
+                            // Trial Button (only if not active)
+                            if (plan['status'] != true)
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed: () {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text("Free Trial Activated"),
+                                      ),
+                                    );
+                                  },
+                                  style: AppButtonStyles.secondaryButton,
+                                  child: const Text(
+                                    "Free Trial",
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
                                 ),
-                              );
-                            },
-                            style: AppButtonStyles.primaryButton,
-                            child: const Text(
-                              "Purchase",
-                              style: AppTextStyles.primaryButton,
-                            ),
-                          ),
+                              ),
+                          ],
                         ),
                       ],
                     ),

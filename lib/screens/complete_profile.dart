@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:facesoft/form/company.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:country_picker/country_picker.dart';
@@ -22,6 +21,13 @@ class CompleteProfile extends StatefulWidget {
 }
 
 class _CompleteProfileState extends State<CompleteProfile> {
+
+  bool get _isProfileComplete {
+    return _emailController.text.trim().isNotEmpty &&
+        _phoneController.text.trim().isNotEmpty;
+  }
+
+
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
@@ -59,7 +65,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
       appBar: AppBar(
         centerTitle: true,
         backgroundColor: Colors.white,
-        title: const Text("Complete Your Profile"),
+        title: Text(_isProfileComplete ? "Update Your Profile" : "Complete Your Profile"),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -590,20 +596,30 @@ class _CompleteProfileState extends State<CompleteProfile> {
 
       if (ok) {
         if (mounted) {
-          // ✅ Save to SharedPreferences before navigation
           final authProvider = Provider.of<AuthProvider>(context, listen: false);
           await authProvider.saveAuthDataToLocal();
 
           scaffold.showSnackBar(
-            const SnackBar(content: Text('Profile updated successfully')),
+            SnackBar(
+              content: Text(_isProfileComplete
+                  ? 'Profile updated successfully'
+                  : 'Profile completed successfully'),
+            ),
           );
 
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const AddCompanyPage()),
-          );
+          if (widget.initialProfile?.phoneNumber != null && widget.initialProfile?.email != null) {
+            // ✅ Both phone & email present → just pop back
+            Navigator.pop(context, true); // you can return true for refresh if needed
+          } else {
+            // ❌ Missing one → go to company form
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const CompanyProfileForm()),
+            );
+          }
         }
-      } else {
+      }
+      else {
         scaffold.showSnackBar(const SnackBar(content: Text('Failed to update profile')));
       }
     } catch (e) {
