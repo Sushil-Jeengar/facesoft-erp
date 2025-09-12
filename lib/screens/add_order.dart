@@ -665,129 +665,154 @@ class _AddOrderPageState extends State<AddOrderPage> {
     return Scaffold(
       backgroundColor: Colors.grey[200],
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Card(
-          elevation: 1,
-          color: Colors.white,
-          child: Padding(
-            padding: const EdgeInsets.all(10),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildInput(
-                    orderNumberController,
-                    'Order Number',
-                    Icons.confirmation_number,
-                  ),
-                  _buildDateInput(
-                    orderDateController,
-                    'Order Date',
-                    Icons.calendar_today,
-                    context,
-                  ),
-
-                  _buildCompanyDropdown(),
-
-                  _buildPartyDropdown(),
-                  _buildSupplierDropdown(),
-                  _buildTransportDropdown(),
-
-                  _buildInput(
-                    deliveryAddressController,
-                    'Delivery Address',
-                    Icons.location_on,
-                  ),
-                  _buildDropdownField(
-                    'Payment Status',
-                    ['Paid', 'Unpaid', 'Partial'],
-                    paymentStatus,
-                    (val) => setState(() => paymentStatus = val!),
-                  ),
-                  _buildAgentDropdown(),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Items',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  ...items.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final item = entry.value;
-                    return _buildItemInput(index, item);
-                  }),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: _addItem,
-                      icon: const Icon(Icons.add, color: Colors.white),
-                      label: const Text(
-                        'Add Item',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Card(
+                elevation: 2,
+                margin: const EdgeInsets.only(bottom: 16.0),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildInput(
+                        orderNumberController,
+                        'Order Number',
+                        Icons.confirmation_number,
                       ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
+                      _buildDateInput(
+                        orderDateController,
+                        'Order Date',
+                        Icons.calendar_today,
+                        context,
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildInput(
-                    discountController,
-                    'Discount',
-                    Icons.percent,
-                    TextInputType.number,
-                  ),
-                  _buildInput(
-                    subtotalController,
-                    'Subtotal',
-                    Icons.calculate,
-                    TextInputType.number,
-                  ),
-                  _buildInput(
-                    taxAmountController,
-                    'Tax Amount',
-                    Icons.request_quote,
-                    TextInputType.number,
-                  ),
-                  _buildInput(
-                    grandTotalController,
-                    'Grand Total',
-                    Icons.attach_money,
-                    TextInputType.number,
-                  ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    child: _isSubmitting
-                        ? const CircularProgressIndicator()
-                        : ElevatedButton(
-                            onPressed: _isSubmitting ? null : _submitOrder,
-                            style: AppButtonStyles.primaryButton,
-                            child: Text(
-                              widget.editingOrder != null ? "Update Order" : "Submit Order",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
+                      _buildCompanyDropdown(),
+                      _buildPartyDropdown(),
+                      _buildSupplierDropdown(),
+                      _buildTransportDropdown(),
+                      _buildInput(
+                        deliveryAddressController,
+                        'Delivery Address',
+                        Icons.location_on,
                       ),
-                    ),
+                      _buildDropdownField(
+                        'Payment Status',
+                        ['Paid', 'Unpaid', 'Partial'],
+                        paymentStatus,
+                        (val) => setState(() => paymentStatus = val!),
+                      ),
+                      _buildAgentDropdown(),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
+              
+              Card(
+                elevation: 2,
+                margin: const EdgeInsets.only(bottom: 16.0),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Items',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ...items.asMap().entries.map((entry) {
+                        final index = entry.key;
+                        final item = entry.value;
+                        return _buildItemInput(index, item);
+                      }),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: _addItem,
+                          icon: const Icon(Icons.add, color: Colors.white),
+                          label: const Text(
+                            'Add Item',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              
+              Card(
+                elevation: 2,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      _buildInput(
+                        discountController,
+                        'Discount',
+                        Icons.percent,
+                        TextInputType.number,
+                      ),
+                      _buildInput(
+                        subtotalController,
+                        'Subtotal',
+                        Icons.calculate,
+                        TextInputType.number,
+                        true, // readOnly
+                      ),
+                      _buildInput(
+                        taxAmountController,
+                        'Tax Amount',
+                        Icons.request_quote,
+                        TextInputType.number,
+                      ),
+                      _buildInput(
+                        grandTotalController,
+                        'Grand Total',
+                        Icons.attach_money,
+                        TextInputType.number,
+                        true, // readOnly
+                      ),
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        width: double.infinity,
+                        child: _isSubmitting
+                            ? const Center(child: CircularProgressIndicator())
+                            : ElevatedButton(
+                                onPressed: _isSubmitting ? null : _submitOrder,
+                                style: AppButtonStyles.primaryButton,
+                                child: Text(
+                                  widget.editingOrder != null ? "Update Order" : "Submit Order",
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
