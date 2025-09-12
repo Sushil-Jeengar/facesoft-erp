@@ -1,72 +1,83 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:facesoft/providers/company_provider.dart';
+import 'package:facesoft/providers/order_provider.dart';
 
 class DashboardCard extends StatelessWidget {
   const DashboardCard({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<CompanyProvider>(
-      builder: (context, companyProvider, _) {
-        // Get company count from provider
+    return Consumer2<CompanyProvider, OrderProvider>(
+      builder: (context, companyProvider, orderProvider, _) {
+        // Fetch orders if not already loaded
+        if (orderProvider.orders.isEmpty && !orderProvider.isLoading) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            orderProvider.fetchOrders();
+          });
+        }
+
+        // Get company and orders count from providers
         final companyCount = companyProvider.companies.length;
-        // TODO: Replace with actual orders count from your orders provider
-        const ordersCount = 0;
-        
-        return Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              // Orders Card
-              Expanded(
-                child: Card(
-                  color: Colors.white,
-                  elevation: 1,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 20,
-                      horizontal: 12,
-                    ),
-                    child: _buildItem(
-                      icon: Icons.shopping_bag_outlined,
-                      label: "Orders",
-                      count: ordersCount,
-                      iconColor: Colors.blue,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              // Companies Card
-              Expanded(
-                child: Card(
-                  color: Colors.white,
-                  elevation: 1,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 20,
-                      horizontal: 12,
-                    ),
-                    child: _buildItem(
-                      icon: Icons.business_outlined,
-                      label: "Companies",
-                      count: companyCount,
-                      iconColor: Colors.green,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
+        final ordersCount = orderProvider.orders.length;
+
+        return _buildDashboardCards(companyCount, ordersCount);
       },
+    );
+  }
+
+  Widget _buildDashboardCards(int companyCount, int ordersCount) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          // Orders Card
+          Expanded(
+            child: Card(
+              color: Colors.white,
+              elevation: 1,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 20,
+                  horizontal: 12,
+                ),
+                child: _buildItem(
+                  icon: Icons.shopping_bag_outlined,
+                  label: "Orders",
+                  count: ordersCount,
+                  iconColor: Colors.blue,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          // Companies Card
+          Expanded(
+            child: Card(
+              color: Colors.white,
+              elevation: 1,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 20,
+                  horizontal: 12,
+                ),
+                child: _buildItem(
+                  icon: Icons.business_outlined,
+                  label: "Companies",
+                  count: companyCount,
+                  iconColor: Colors.green,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
