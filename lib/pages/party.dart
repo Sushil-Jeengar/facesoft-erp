@@ -130,7 +130,7 @@ class _PartyPageState extends State<PartyPage> {
                 ),
                 Expanded(
                   child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 80), // Added bottom padding of 80 to accommodate the FAB
                     itemCount: filteredParties.length,
                     itemBuilder: (context, index) {
                       final party = filteredParties[index];

@@ -63,7 +63,7 @@ class PlanPage extends StatelessWidget {
           final items = fetched.isEmpty ? plans : fetched;
 
           return ListView(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 80), // Added bottom padding of 80 to accommodate the FAB
             children: [
               // Enhanced Banner Widget
               Container(

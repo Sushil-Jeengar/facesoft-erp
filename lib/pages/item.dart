@@ -72,7 +72,7 @@ class _ItemsPageState extends State<ItemsPage> {
             return RefreshIndicator(
               onRefresh: () => itemProvider.fetchItems(),
               child: ListView.builder(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 96), // Added bottom padding of 96 to accommodate the FAB
                 itemCount: itemProvider.items.length,
                 itemBuilder: (context, index) {
                   final item = itemProvider.items[index];
