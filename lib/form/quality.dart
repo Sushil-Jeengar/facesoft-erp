@@ -140,8 +140,10 @@ class _AddQualityPageState extends State<AddQualityPage> {
 
                           Map<String, dynamic> updateData = {};
                           if (widget.quality != null) {
+                            updateData['user_id'] = userId;
                             if (nameController.text != widget.quality!.qualityName) {
                               updateData['quality_name'] = nameController.text;
+
                             }
                             if (codeController.text != widget.quality!.qualityCode) {
                               updateData['quality_code'] = codeController.text;

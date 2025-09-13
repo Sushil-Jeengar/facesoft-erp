@@ -550,6 +550,7 @@ class _AddSupplierPageState extends State<AddSupplierPage> {
                           );
                           Map<String, dynamic> supplierData = {};
                           if (widget.supplier != null) {
+                            supplierData['user_id'] = authProvider.authData!.user.id;
                             // For update, only include changed fields
                             if (companyNameController.text != widget.supplier!.companyName) {
                               supplierData['company_name'] = companyNameController.text;

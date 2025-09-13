@@ -14,6 +14,7 @@ class TransportProvider with ChangeNotifier {
 
   // Fetch all transports
   Future<void> fetchTransports({int? userId}) async {
+
     _isLoading = true;
     _error = null;
     notifyListeners();

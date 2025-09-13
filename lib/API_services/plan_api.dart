@@ -1,13 +1,13 @@
 import 'dart:convert';
+import 'package:facesoft/API_services/api_data.dart';
 import 'package:http/http.dart' as http;
 
 class PlanApiService {
-  static const String baseUrl = "http://192.168.1.169:5000/v1/api/admin/plans";
 
   /// Fetch all plans
   static Future<List<dynamic>> fetchPlans() async {
     try {
-      final response = await http.get(Uri.parse(baseUrl));
+      final response = await http.get(Uri.parse(API_Data.plans));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);

@@ -97,7 +97,7 @@ class CompanyProvider with ChangeNotifier {
       final success = await CompanyApiService.updateCompany(updatedCompany, imageFile: imageFile);
       if (success) {
         // Ensure we have the latest data (e.g., updated image URL) from server
-        await fetchCompanies();
+        await fetchCompanies(userId: updatedCompany.userId);
         return true;
       } else {
         _error = 'Failed to update company';

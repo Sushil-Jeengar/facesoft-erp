@@ -72,10 +72,9 @@ class QualityProvider with ChangeNotifier {
       final success = await QualityApiService.updateQuality(id, updateData);
       if (success) {
         // Fetch the updated list of qualities to ensure the UI is up-to-date
-        final updatedQualities = await QualityApiService.fetchQualities();
-        if (updatedQualities != null) {
-          _qualities = updatedQualities;
-        }
+        final userId = updateData['user_id'];
+        await fetchQualities(userId: userId);
+        return true;
         notifyListeners();
         return true;
       } else {

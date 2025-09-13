@@ -59,7 +59,7 @@ class PartyProvider with ChangeNotifier {
     }
   }
 
-  // Updated: Create Party with Image Support
+  //Create Party with Image Support
   Future<Map<String, dynamic>> createParty(Party party, {File? imageFile}) async {
     _isLoading = true;
     _error = null;
@@ -91,7 +91,7 @@ class PartyProvider with ChangeNotifier {
     try {
       final result = await PartiesApiService.updateParty(party, imageFile: imageFile);
       if (result['success']) {
-        await fetchParties(); // Refresh the list
+        await fetchParties(userId: party.userId); // Refresh the list
         return {'success': true, 'message': 'Party updated successfully'};
       } else {
         _error = result['message'];

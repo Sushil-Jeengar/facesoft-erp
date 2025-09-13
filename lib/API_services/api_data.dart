@@ -1,5 +1,5 @@
 class API_Data{
-  static const String domainLink = "http://192.168.1.169:5000/v1/api/";
+  static const String domainLink = "http://192.168.1.141:3000/v1/api/";
 
   // Auth
   static const String login = domainLink + "auth/signin/send-otp";
