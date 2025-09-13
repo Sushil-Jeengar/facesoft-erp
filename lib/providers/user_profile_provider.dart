@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:facesoft/API_services/user_api.dart';
 import 'package:facesoft/model/user_profile_model.dart';
@@ -25,6 +27,36 @@ class UserProfileProvider with ChangeNotifier {
     } catch (e) {
       print("Error in fetchUserProfile: $e");
       _userProfile = null;
+      _error = e.toString();
+      rethrow;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<bool> updateUserProfile({
+    required int userId,
+    required Map<String, dynamic> updatedFields,
+    File? profileImage,
+  }) async {
+    try {
+      _setLoading(true);
+      final response = await UserService.updateUserProfile(
+        userId,
+        updatedFields,
+        profileImage: profileImage,
+      );
+      
+      if (response['success'] == true) {
+        // Refresh the user profile after successful update
+        await fetchUserProfile(userId);
+        return true;
+      } else {
+        _error = response['message'] ?? 'Failed to update profile';
+        return false;
+      }
+    } catch (e) {
+      print("Error in updateUserProfile: $e");
       _error = e.toString();
       rethrow;
     } finally {

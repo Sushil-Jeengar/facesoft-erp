@@ -30,41 +30,49 @@ class UserService {
   }
 
   // Update user with only changed fields. If imageFile is provided, uses multipart.
-  static Future<bool> updateUserProfilePartial(
-    int userId,
-    Map<String, dynamic> changedFields, {
-    File? imageFile,
+  static Future<Map<String, dynamic>> updateUserProfile(
+    int userId, 
+    Map<String, dynamic> updatedFields, {
+    File? profileImage,
   }) async {
-    final Uri url = Uri.parse('${API_Data.user}/$userId');
-
     try {
-      http.Response response;
-      if (imageFile != null) {
-        final request = http.MultipartRequest('PUT', url);
-        // Attach JSON fields as fields
-        changedFields.forEach((key, value) {
-          if (value != null) {
-            request.fields[key] = value.toString();
-          }
-        });
-        request.files.add(await http.MultipartFile.fromPath('profile_image', imageFile.path));
-        final streamed = await request.send();
-        response = await http.Response.fromStream(streamed);
-      } else {
-        response = await http.put(
-          url,
-          headers: {'Content-Type': 'application/json'},
-          body: json.encode(changedFields),
-        );
+      final uri = Uri.parse('${API_Data.user}/$userId');
+      final request = http.MultipartRequest('PUT', uri);
+      
+      // Add all fields to the request
+      updatedFields.forEach((key, value) {
+        if (value != null) {
+          request.fields[key] = value.toString();
+        }
+      });
+      
+      // Add profile image if provided
+      if (profileImage != null && await profileImage.exists()) {
+        request.files.add(await http.MultipartFile.fromPath(
+          'profile_image', 
+          profileImage.path,
+        ));
       }
-
+      
+      final streamed = await request.send();
+      final response = await http.Response.fromStream(streamed);
+      
+      print("Update User Status Code: ${response.statusCode}");
+      print("Response Body: ${response.body}");
+      
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        return data['success'] == true;
+        final decoded = json.decode(response.body);
+        if (decoded['success'] == true) {
+          return {'success': true, 'message': decoded['message']};
+        } else {
+          return {'success': false, 'message': 'Failed to update user profile'};
+        }
+      } else {
+        return {'success': false, 'message': 'Failed to update user profile: ${response.statusCode}'};
       }
-      return false;
-    } catch (_) {
-      rethrow;
+    } catch (e) {
+      print("Exception caught: $e");
+      return {'success': false, 'message': 'Exception: $e'};
     }
   }
 }

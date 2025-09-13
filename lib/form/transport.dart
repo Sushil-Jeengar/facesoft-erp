@@ -242,6 +242,7 @@ class _AddTransportPageState extends State<AddTransportPage> {
                           if (widget.transport != null) {
                             // Update existing transport
                             final updateData = {
+                              'user_id' : userId,
                               'transport_name': nameController.text,
                               'contact_person': contactPersonController.text,
                               'phone': '$phoneCode${phoneController.text}',

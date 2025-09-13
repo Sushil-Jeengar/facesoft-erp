@@ -95,7 +95,8 @@ class TransportProvider with ChangeNotifier {
     try {
       final updatedTransport = await TransportApiService.updateTransport(id, updateData);
       if (updatedTransport != null) {
-        await fetchTransports(); // Refresh the list after update
+        final userId = updateData['user_id'];
+        await fetchTransports(userId: userId); // Refresh the list after update
         notifyListeners();
         return true;
       } else {

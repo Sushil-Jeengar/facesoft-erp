@@ -78,6 +78,12 @@ class _CustomDrawerState extends State<CustomDrawer> {
                         CircleAvatar(
                           radius: 40,
                           backgroundColor: Colors.white,
+                          backgroundImage: userProfile?.profileImage != null 
+                              ? NetworkImage(userProfile!.profileImage!) as ImageProvider
+                              : null,
+                          child: userProfile?.profileImage == null
+                              ? const Icon(Icons.person, size: 40, color: AppColors.primary)
+                              : null,
                         ),
                         const SizedBox(height: 12),
                         Text(

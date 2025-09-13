@@ -11,6 +11,7 @@ import 'package:facesoft/API_services/user_api.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
+import '../providers/user_profile_provider.dart';
 
 class CompleteProfile extends StatefulWidget {
   final UserProfile? initialProfile;
@@ -52,6 +53,16 @@ class _CompleteProfileState extends State<CompleteProfile> {
   List<dynamic>? _countriesData;
   String? _selectedGender;
 
+  ImageProvider? _getProfileImage() {
+    if (_profileImage != null) {
+      return FileImage(_profileImage!);
+    } else if (widget.initialProfile?.profileImage != null && 
+              widget.initialProfile!.profileImage!.isNotEmpty) {
+      return NetworkImage(widget.initialProfile!.profileImage!) as ImageProvider;
+    }
+    return null;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -88,27 +99,27 @@ class _CompleteProfileState extends State<CompleteProfile> {
                       onTap: _pickImage,
                       child: CircleAvatar(
                         radius: 50,
-                        backgroundImage: _profileImage != null ? FileImage(_profileImage!) : null,
+                        backgroundImage: _getProfileImage(),
                         backgroundColor: Colors.grey.shade300,
-                        child: _profileImage == null
+                        child: _profileImage == null && (widget.initialProfile?.profileImage == null || widget.initialProfile!.profileImage!.isEmpty)
                             ? Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Icon(
-                              Icons.image,
-                              size: 30,
-                              color: Colors.white,
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              'Upload Logo',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        )
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: const [
+                                  Icon(
+                                    Icons.person,
+                                    size: 40,
+                                    color: Colors.white,
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    'Upload Photo',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              )
                             : null,
                       ),
                     ),
@@ -586,19 +597,18 @@ class _CompleteProfileState extends State<CompleteProfile> {
         builder: (context) => const Center(child: CircularProgressIndicator()),
       );
 
-      final bool ok = await UserService.updateUserProfilePartial(
-        id,
-        changed,
-        imageFile: _profileImage,
+      final userProfileProvider = Provider.of<UserProfileProvider>(context, listen: false);
+      
+      final success = await userProfileProvider.updateUserProfile(
+        userId: id,
+        updatedFields: changed,
+        profileImage: _profileImage,
       );
 
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) {
+        Navigator.of(context).pop(); // Close loading dialog
 
-      if (ok) {
-        if (mounted) {
-          final authProvider = Provider.of<AuthProvider>(context, listen: false);
-          await authProvider.saveAuthDataToLocal();
-
+        if (success) {
           scaffold.showSnackBar(
             SnackBar(
               content: Text(_isProfileComplete
@@ -608,23 +618,26 @@ class _CompleteProfileState extends State<CompleteProfile> {
           );
 
           if (widget.initialProfile?.phoneNumber != null && widget.initialProfile?.email != null) {
-            // ✅ Both phone & email present → just pop back
+            // Both phone & email present → just pop back
             Navigator.pop(context, true); // you can return true for refresh if needed
           } else {
-            // ❌ Missing one → go to company form
+            // Missing one → go to company form
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const CompanyProfileForm()),
             );
           }
+        } else {
+          scaffold.showSnackBar(SnackBar(
+            content: Text(userProfileProvider.error ?? 'Failed to update profile'),
+          ));
         }
       }
-      else {
-        scaffold.showSnackBar(const SnackBar(content: Text('Failed to update profile')));
-      }
     } catch (e) {
-      if (mounted) Navigator.of(context).pop();
-      scaffold.showSnackBar(SnackBar(content: Text('Error: $e')));
+      if (mounted) {
+        Navigator.of(context).pop();
+        scaffold.showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
     }
   }
 
