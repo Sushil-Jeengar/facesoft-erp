@@ -5,6 +5,7 @@ import 'package:facesoft/form/supplier.dart';
 import 'package:facesoft/model/supplier_model.dart';
 import 'package:facesoft/providers/supplier_provider.dart';
 import 'package:facesoft/providers/auth_provider.dart';
+import 'package:facesoft/widget/skeletons.dart';
 
 class SupplierPage extends StatefulWidget {
   const SupplierPage({super.key});
@@ -77,7 +78,9 @@ class _SupplierPageState extends State<SupplierPage> {
               : filteredSuppliers;
 
           if (supplierProvider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const SkeletonList(
+              variant: SkeletonVariant.avatarAndActions,
+            );
           }
 
           if (supplierProvider.errorMessage != null) {

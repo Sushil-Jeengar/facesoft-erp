@@ -58,7 +58,102 @@ class _CompanyOverviewCardState extends State<CompanyOverviewCard> {
     return Consumer<CompanyProvider>(
       builder: (context, provider, _) {
         if (_isLoading) {
-          return const Center(child: CircularProgressIndicator());
+          return Column(
+            children: [
+              // Heading skeleton
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      width: 120,
+                      height: 20,
+                      decoration: BoxDecoration(
+                        color: Colors.black12,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                    Container(
+                      width: 70,
+                      height: 20,
+                      decoration: BoxDecoration(
+                        color: Colors.black12,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Card list skeleton (PageView-like area)
+              SizedBox(
+                height: 200,
+                child: PageView.builder(
+                  itemCount: 3,
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Card(
+                        elevation: 1,
+                        color: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    width: 50,
+                                    height: 50,
+                                    decoration: BoxDecoration(
+                                      color: Colors.black12,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                          height: 18,
+                                          decoration: BoxDecoration(
+                                            color: Colors.black12,
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Container(
+                                          width: 140,
+                                          height: 12,
+                                          decoration: BoxDecoration(
+                                            color: Colors.black12,
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              Container(height: 14, decoration: BoxDecoration(color: Colors.black12, borderRadius: BorderRadius.circular(6))),
+                              const SizedBox(height: 8),
+                              Container(height: 14, decoration: BoxDecoration(color: Colors.black12, borderRadius: BorderRadius.circular(6))),
+                              const SizedBox(height: 8),
+                              Container(height: 14, decoration: BoxDecoration(color: Colors.black12, borderRadius: BorderRadius.circular(6))),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          );
         }
         if (_error != null) {
           return Center(child: Text(_error!));

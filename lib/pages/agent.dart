@@ -5,6 +5,7 @@ import 'package:facesoft/model/agent_model.dart';
 import 'package:facesoft/style/app_style.dart';
 import 'package:facesoft/form/agent.dart';
 import 'package:facesoft/providers/auth_provider.dart';
+import 'package:facesoft/widget/skeletons.dart';
 
 class AgentPage extends StatefulWidget {
   const AgentPage({super.key});
@@ -103,7 +104,7 @@ class _AgentPageState extends State<AgentPage> {
           Expanded(
             child:
                 agentProvider.isLoading
-                    ? const Center(child: CircularProgressIndicator())
+                    ? const SkeletonList()
                     : filteredAgents.isEmpty
                     ? const Center(
                       child: Text(

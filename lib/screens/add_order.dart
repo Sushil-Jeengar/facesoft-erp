@@ -238,7 +238,13 @@ class _AddOrderPageState extends State<AddOrderPage> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: isSupplierLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Container(
+              height: 56,
+              decoration: BoxDecoration(
+                color: Colors.black12,
+                borderRadius: BorderRadius.circular(10),
+              ),
+            )
           : DropdownButtonFormField<Supplier>(
         value: selectedSupplier,
         decoration: InputDecoration(
@@ -271,7 +277,13 @@ class _AddOrderPageState extends State<AddOrderPage> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: isPartyLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Container(
+              height: 56,
+              decoration: BoxDecoration(
+                color: Colors.black12,
+                borderRadius: BorderRadius.circular(10),
+              ),
+            )
           : DropdownButtonFormField<Party>(
         value: selectedParty,
         decoration: InputDecoration(
@@ -304,7 +316,13 @@ class _AddOrderPageState extends State<AddOrderPage> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Container(
+              height: 56,
+              decoration: BoxDecoration(
+                color: Colors.black12,
+                borderRadius: BorderRadius.circular(10),
+              ),
+            )
           : DropdownButtonFormField<Company>(
         value: selectedCompany,
         decoration: InputDecoration(
@@ -337,7 +355,13 @@ class _AddOrderPageState extends State<AddOrderPage> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: isTransportLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Container(
+              height: 56,
+              decoration: BoxDecoration(
+                color: Colors.black12,
+                borderRadius: BorderRadius.circular(10),
+              ),
+            )
           : DropdownButtonFormField<Transport>(
         value: selectedTransport,
         decoration: InputDecoration(
@@ -370,7 +394,13 @@ class _AddOrderPageState extends State<AddOrderPage> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: isAgentLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Container(
+              height: 56,
+              decoration: BoxDecoration(
+                color: Colors.black12,
+                borderRadius: BorderRadius.circular(10),
+              ),
+            )
           : DropdownButtonFormField<Agent>(
         value: selectedAgent,
         decoration: InputDecoration(
@@ -810,7 +840,13 @@ class _AddOrderPageState extends State<AddOrderPage> {
                       SizedBox(
                         width: double.infinity,
                         child: _isSubmitting
-                            ? const Center(child: CircularProgressIndicator())
+                            ? Container(
+                                height: 48,
+                                decoration: BoxDecoration(
+                                  color: Colors.black12,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              )
                             : ElevatedButton(
                                 onPressed: _isSubmitting ? null : _submitOrder,
                                 style: AppButtonStyles.primaryButton,
@@ -957,7 +993,13 @@ class _AddOrderPageState extends State<AddOrderPage> {
         children: [
           // Item Name Dropdown
           isItemsLoading
-              ? const CircularProgressIndicator()
+              ? Container(
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: Colors.black12,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                )
               : DropdownButtonFormField<String>(
                   value: item['partId']?.toString(),
                   decoration: InputDecoration(

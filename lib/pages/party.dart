@@ -6,6 +6,7 @@ import 'package:facesoft/screens/home_screen.dart';
 import 'package:facesoft/providers/party_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:facesoft/providers/auth_provider.dart';
+import 'package:facesoft/widget/skeletons.dart';
 
 class PartyPage extends StatefulWidget {
   const PartyPage({super.key});
@@ -87,7 +88,7 @@ class _PartyPageState extends State<PartyPage> {
         body: Consumer<PartyProvider>(
           builder: (context, partyProvider, child) {
             if (partyProvider.isLoading) {
-              return const Center(child: CircularProgressIndicator());
+              return const SkeletonList();
             }
             if (partyProvider.error != null) {
               return Center(

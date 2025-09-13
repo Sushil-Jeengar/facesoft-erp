@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:facesoft/pages/payment.dart';
 import 'package:facesoft/style/app_style.dart';
 import 'package:facesoft/API_services/plan_api.dart';
+import 'package:facesoft/widget/skeletons.dart';
 
 class PlanPage extends StatelessWidget {
   PlanPage({super.key});
@@ -45,7 +46,7 @@ class PlanPage extends StatelessWidget {
         future: PlanApiService.fetchPlans(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const SkeletonList(padding: EdgeInsets.fromLTRB(12, 12, 12, 80));
           }
           if (snapshot.hasError) {
             return Center(

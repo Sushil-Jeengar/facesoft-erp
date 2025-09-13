@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:facesoft/model/item_model.dart';
 import 'package:facesoft/providers/item_provider.dart';
 import 'package:facesoft/style/app_style.dart';
+import 'package:facesoft/widget/skeletons.dart';
 
 class ItemsPage extends StatefulWidget {
   const ItemsPage({super.key});
@@ -47,7 +48,9 @@ class _ItemsPageState extends State<ItemsPage> {
         body: Consumer<ItemProvider>(
           builder: (context, itemProvider, _) {
             if (itemProvider.isLoading && itemProvider.items.isEmpty) {
-              return const Center(child: CircularProgressIndicator());
+              return const SkeletonList(
+                padding: EdgeInsets.fromLTRB(16, 16, 16, 96),
+              );
             }
             if (itemProvider.errorMessage.isNotEmpty) {
               return Center(

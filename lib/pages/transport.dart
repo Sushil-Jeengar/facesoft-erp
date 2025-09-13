@@ -6,6 +6,7 @@ import 'package:facesoft/model/transport_model.dart';
 import 'package:facesoft/providers/transport_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:facesoft/providers/auth_provider.dart';
+import 'package:facesoft/widget/skeletons.dart';
 
 class TransportPage extends StatefulWidget {
   const TransportPage({super.key});
@@ -117,7 +118,7 @@ class _TransportPageState extends State<TransportPage> {
           // Transport List
           Expanded(
             child: transportProvider.isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? const SkeletonList()
                 : filteredTransports.isEmpty
                 ? const Center(
               child: Text(
