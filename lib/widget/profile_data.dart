@@ -4,15 +4,23 @@ import 'package:facesoft/providers/company_provider.dart';
 import 'package:facesoft/providers/order_provider.dart';
 import 'package:facesoft/providers/auth_provider.dart';
 
-class DashboardCard extends StatelessWidget {
+class DashboardCard extends StatefulWidget {
   const DashboardCard({super.key});
+
+  @override
+  State<DashboardCard> createState() => _DashboardCardState();
+}
+
+class _DashboardCardState extends State<DashboardCard> {
+  bool _hasLoadedOrders = false;
 
   @override
   Widget build(BuildContext context) {
     return Consumer3<CompanyProvider, OrderProvider, AuthProvider>(
       builder: (context, companyProvider, orderProvider, authProvider, _) {
-        // Fetch orders if not already loaded
-        if (orderProvider.orders.isEmpty && !orderProvider.isLoading) {
+        // Fetch orders if not already loaded and not currently loading
+        if (!_hasLoadedOrders && orderProvider.orders.isEmpty && !orderProvider.isLoading) {
+          _hasLoadedOrders = true;
           WidgetsBinding.instance.addPostFrameCallback((_) {
             final userId = authProvider.authData?.user.id;
             orderProvider.fetchOrders(userId: userId);
