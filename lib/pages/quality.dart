@@ -5,6 +5,7 @@
   import 'package:facesoft/model/quality_model.dart';
   import 'package:facesoft/providers/quality_provider.dart';
   import 'package:facesoft/providers/auth_provider.dart';
+  import 'package:facesoft/widget/skeletons.dart';
   
   class QualityPage extends StatefulWidget {
 
@@ -138,7 +139,7 @@
             Expanded(
               child:
                   provider.isLoading
-                      ? const Center(child: CircularProgressIndicator())
+                      ? const SkeletonList()
                       : filteredQualities.isEmpty
                       ? const Center(
                         child: Text(

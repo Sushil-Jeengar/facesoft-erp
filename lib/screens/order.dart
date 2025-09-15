@@ -445,7 +445,64 @@ class _OrderPageState extends State<OrderPage> {
     return Consumer<OrderProvider>(
       builder: (context, orderProvider, child) {
         if (orderProvider.isLoading && orderProvider.orders.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  // Page title skeleton
+                  Container(
+                    width: double.infinity,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: Colors.black12,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Search bar skeleton
+                  Container(
+                    width: double.infinity,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: Colors.black12,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Filters row skeletons
+                  Row(
+                    children: List.generate(3, (i) => Expanded(
+                      child: Container(
+                        margin: EdgeInsets.only(right: i < 2 ? 8 : 0),
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: Colors.black12,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    )),
+                  ),
+                  const SizedBox(height: 16),
+                  // List item skeletons
+                  Expanded(
+                    child: ListView.separated(
+                      itemBuilder: (context, index) => Container(
+                        height: 120,
+                        decoration: BoxDecoration(
+                          color: Colors.black12,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      separatorBuilder: (context, index) => const SizedBox(height: 12),
+                      itemCount: 6,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
         }
         if (orderProvider.errorMessage.isNotEmpty) {
           return Center(
