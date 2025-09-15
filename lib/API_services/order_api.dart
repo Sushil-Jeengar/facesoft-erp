@@ -86,4 +86,31 @@ class OrderApiService {
       return false;
     }
   }
+
+  static Future<bool> bulkDeleteOrders(List<String> orderIds) async {
+    try {
+      final response = await http.post(
+        Uri.parse(API_Data.bulkDeleteOrders),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'ids': orderIds,
+        }),
+      );
+      
+      print("Bulk Delete Status Code: ${response.statusCode}");
+      print("Bulk Delete Response: ${response.body}");
+      
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+        print(response.body);
+        return decoded['success'] == true;
+      } else {
+        print("HTTP Error: ${response.statusCode}");
+        return false;
+      }
+    } catch (e) {
+      print("Exception caught in bulkDeleteOrders: $e");
+      return false;
+    }
+  }
 }

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:facesoft/style/app_style.dart';
 import 'package:facesoft/providers/order_provider.dart';
 import 'package:facesoft/model/order_model.dart';
+import 'package:facesoft/API_services/order_api.dart';
 import 'package:facesoft/pages/order_detail_page.dart';
 import 'package:facesoft/screens/add_order.dart';
 import 'package:facesoft/providers/auth_provider.dart';
@@ -365,23 +366,66 @@ class _OrderPageState extends State<OrderPage> {
     });
   }
 
-  void _bulkDelete() {
+  Future<void> _bulkDelete() async {
+    if (_selectedOrderNumbers.isEmpty) return;
+
     final orderProvider = Provider.of<OrderProvider>(context, listen: false);
-    setState(() {
-      orderProvider.orders.removeWhere(
-            (order) => _selectedOrderNumbers.contains(order.orderNumber),
-      );
-      _filteredOrders.removeWhere(
-            (order) => _selectedOrderNumbers.contains(order.orderNumber),
-      );
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Deleted orders: ${_selectedOrderNumbers.join(", ")}'),
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    
+    try {
+      // Show loading indicator
+      final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
         ),
       );
-      _selectedOrderNumbers.clear();
-      _isSelectionMode = false;
-    });
+
+      // Call the API to delete orders
+      final success = await OrderApiService.bulkDeleteOrders(_selectedOrderNumbers);
+      
+      // Remove the loading dialog
+      Navigator.of(context).pop();
+
+      if (success) {
+        // Update local state only after successful API call
+        setState(() {
+          orderProvider.orders.removeWhere(
+            (order) => _selectedOrderNumbers.contains(order.orderNumber),
+          );
+          _filteredOrders.removeWhere(
+            (order) => _selectedOrderNumbers.contains(order.orderNumber),
+          );
+          
+          scaffoldMessenger.showSnackBar(
+            SnackBar(
+              content: Text('Successfully deleted ${_selectedOrderNumbers.length} order(s)'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          
+          _selectedOrderNumbers.clear();
+          _isSelectionMode = false;
+        });
+      } else {
+        scaffoldMessenger.showSnackBar(
+          const SnackBar(
+            content: Text('Failed to delete orders. Please try again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      Navigator.of(context).pop(); // Dismiss loading dialog
+      scaffoldMessenger.showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   void _bulkPrint() {

@@ -28,6 +28,7 @@ class API_Data{
 
   //Orders
   static const String orders = domainLink + "admin/orders";
+  static const String bulkDeleteOrders = domainLink + "admin/orders/bulk-delete";
 
   //Items
   static const String items = domainLink + "admin/items";
