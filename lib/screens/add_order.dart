@@ -693,12 +693,16 @@ class _AddOrderPageState extends State<AddOrderPage> {
   @override
   void initState() {
     super.initState();
-    _fetchCompanies();
-    _fetchParties();
-    _fetchSuppliers();
-    _fetchTransports();
-    _fetchAgents();
-    _fetchItems();
+    
+    // Use addPostFrameCallback to ensure the widget is fully built before fetching data
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchCompanies();
+      _fetchParties();
+      _fetchSuppliers();
+      _fetchTransports();
+      _fetchAgents();
+      _fetchItems();
+    });
 
     if (widget.editingOrder != null) {
       // Prefill fields in edit mode
