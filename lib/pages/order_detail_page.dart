@@ -7,6 +7,7 @@ class OrderDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Demo data - replace this with actual data later
+
     final Map<String, dynamic> order = {
       'orderNumber': 'ORD-2024-001',
       'partyName': 'ABC Electronics Pvt Ltd',

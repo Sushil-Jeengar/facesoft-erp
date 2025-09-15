@@ -8,8 +8,7 @@ class PlanPage extends StatelessWidget {
   PlanPage({super.key});
   final List<Map<String, dynamic>> plans = [
     {
-      'name': 'Starter Plan',
-      'company': 'Invoice IQ Pvt Ltd',
+      'title': 'Starter Plan',
       'validity': '30 days',
       'price': '₹199',
       'features': 'Basic invoicing, 5GB storage',
@@ -17,8 +16,7 @@ class PlanPage extends StatelessWidget {
       'trial': '7 days',
     },
     {
-      'name': 'Pro Plan',
-      'company': 'Invoice IQ Pvt Ltd',
+      'title': 'Pro Plan',
       'validity': '90 days',
       'price': '₹499',
       'features': 'All features, 50GB storage',
@@ -26,8 +24,7 @@ class PlanPage extends StatelessWidget {
       'trial': '14 days',
     },
     {
-      'name': 'Enterprise Plan',
-      'company': 'Invoice IQ Pvt Ltd',
+      'title': 'Enterprise Plan',
       'validity': '180 days',
       'price': '₹999',
       'features': 'Unlimited storage, all features',
@@ -166,7 +163,7 @@ class PlanPage extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            plan['name'],
+                            plan['title'],
                             style: const TextStyle(
                               fontSize: 25,
                               fontWeight: FontWeight.bold,
@@ -175,9 +172,7 @@ class PlanPage extends StatelessWidget {
                           ),
                           const SizedBox(height: 8),
                           _infoRow(Icons.attach_money, "Offer Price: ${plan['price']}") ,
-                          _infoRow(
-                            Icons.calendar_today,
-                            "Validity: ${plan['validity']}",
+                          _infoRow(Icons.calendar_today, "Validity: ${plan['validity']}",
                           ),
                           Row(
                             children: [
@@ -256,7 +251,7 @@ class PlanPage extends StatelessWidget {
                     ),
                   ),
                 );
-              }).toList(),
+              }),
             ],
           );
         },

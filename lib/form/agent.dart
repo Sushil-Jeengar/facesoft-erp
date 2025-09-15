@@ -50,6 +50,19 @@
     List<dynamic>? _countriesData;
     bool _isSaving = false;
 
+    ImageProvider? _getAgentImage() {
+      if (logoImage != null) {
+        return FileImage(logoImage!);
+      } else if (widget.agent?.image != null && widget.agent!.image!.isNotEmpty) {
+        return NetworkImage(widget.agent!.image!) as ImageProvider;
+      }
+      return null;
+    }
+
+    bool _showUploadPlaceholder() {
+      return logoImage == null && (widget.agent?.image == null || widget.agent!.image!.isEmpty);
+    }
+
     @override
     void initState() {
       super.initState();
@@ -521,30 +534,28 @@
                       onTap: pickLogo,
                       child: CircleAvatar(
                         radius: 50,
-                        backgroundImage:
-                            logoImage != null ? FileImage(logoImage!) : null,
+                        backgroundImage: _getAgentImage(),
                         backgroundColor: Colors.grey.shade300,
-                        child:
-                            logoImage == null
-                                ? Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: const [
-                                    Icon(
-                                      Icons.image,
-                                      size: 30,
+                        child: _showUploadPlaceholder()
+                            ? Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: const [
+                                  Icon(
+                                    Icons.image,
+                                    size: 30,
+                                    color: Colors.white,
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    'Upload Logo',
+                                    style: TextStyle(
                                       color: Colors.white,
+                                      fontSize: 12,
                                     ),
-                                    SizedBox(height: 4),
-                                    Text(
-                                      'Upload Logo',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
-                                )
-                                : null,
+                                  ),
+                                ],
+                              )
+                            : null,
                       ),
                     ),
                     const SizedBox(height: 16),

@@ -1,9 +1,3 @@
-
-
-
-
-
-
 import 'package:facesoft/model/agent_model.dart';
 import 'package:facesoft/providers/agent_provider.dart';
 import 'package:facesoft/model/transport_model.dart';
@@ -38,6 +32,7 @@ class AddOrderPage extends StatefulWidget {
 
 class _AddOrderPageState extends State<AddOrderPage> {
 
+  
 
   List<Company> companies = [];
   bool isLoading = true;
@@ -114,7 +109,12 @@ class _AddOrderPageState extends State<AddOrderPage> {
 
   Future<void> _fetchCompanies() async {
     final provider = Provider.of<CompanyProvider>(context, listen: false);
-    await provider.fetchCompanies();
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final userId = authProvider.authData?.user.id;
+    
+    if (userId == null) return;
+    
+    await provider.fetchCompanies(userId: userId);
     setState(() {
       companies = provider.companies;
       final Set<String> seen = {};
@@ -138,7 +138,12 @@ class _AddOrderPageState extends State<AddOrderPage> {
 
   Future<void> _fetchParties() async {
     final provider = Provider.of<PartyProvider>(context, listen: false);
-    await provider.fetchParties();
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final userId = authProvider.authData?.user.id;
+    
+    if (userId == null) return;
+    
+    await provider.fetchParties(userId: userId);
     setState(() {
       parties = provider.parties;
       isPartyLoading = false;
@@ -155,7 +160,12 @@ class _AddOrderPageState extends State<AddOrderPage> {
 
   Future<void> _fetchSuppliers() async {
     final provider = Provider.of<SupplierProvider>(context, listen: false);
-    await provider.fetchSuppliers();
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final userId = authProvider.authData?.user.id;
+    
+    if (userId == null) return;
+    
+    await provider.fetchSuppliers(userId: userId);
     setState(() {
       suppliers = provider.suppliers;
       isSupplierLoading = false;
@@ -172,7 +182,12 @@ class _AddOrderPageState extends State<AddOrderPage> {
 
   Future<void> _fetchTransports() async {
     final provider = Provider.of<TransportProvider>(context, listen: false);
-    await provider.fetchTransports();
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final userId = authProvider.authData?.user.id;
+    
+    if (userId == null) return;
+    
+    await provider.fetchTransports(userId: userId);
     setState(() {
       transports = provider.transports;
       isTransportLoading = false;
@@ -189,7 +204,12 @@ class _AddOrderPageState extends State<AddOrderPage> {
 
   Future<void> _fetchAgents() async {
     final provider = Provider.of<AgentProvider>(context, listen: false);
-    await provider.fetchAgents();
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final userId = authProvider.authData?.user.id;
+    
+    if (userId == null) return;
+    
+    await provider.fetchAgents(userId: userId);
     setState(() {
       agents = provider.agents;
       isAgentLoading = false;
