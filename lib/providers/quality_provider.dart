@@ -36,7 +36,7 @@ class QualityProvider with ChangeNotifier {
     try {
       final success = await QualityApiService.createQuality(quality);
       if (success) {
-        await fetchQualities();
+        await fetchQualities(userId: quality.userId);
         return true;
       } else {
         notifyListeners();

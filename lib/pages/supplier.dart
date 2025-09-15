@@ -249,6 +249,7 @@ class _SupplierPageState extends State<SupplierPage> {
                                       context: context,
                                       builder: (BuildContext context) {
                                         return AlertDialog(
+                                          backgroundColor: Colors.white,
                                           title: const Text("Confirm Delete"),
                                           content: const Text("Are you sure you want to delete this supplier?"),
                                           actions: [

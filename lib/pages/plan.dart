@@ -293,46 +293,68 @@ class PlanPage extends StatelessWidget {
 
   // Normalize API plan object to UI-friendly map keys similar to SpecialPlanSection
   Map<String, dynamic> _normalizePlan(dynamic raw) {
-    if (raw is Map) {
-      final m = raw as Map;
+    try {
+      if (raw is! Map) {
+        return _getDefaultPlan();
+      }
 
-      // Title
+      final m = Map<String, dynamic>.from(raw as Map);
+
+      // Title - with null safety and default value
       final name = (m['title'] ?? m['name'] ?? m['planName'] ?? 'Plan').toString();
 
-      // Offer price
+      // Offer price - with null safety and default value
       String price = 'N/A';
-      if (m['offer_price'] != null) {
+      if (m['offer_price']?.toString().isNotEmpty == true) {
         price = m['offer_price'].toString();
-      } else if (m['price'] != null) {
+      } else if (m['price']?.toString().isNotEmpty == true) {
         price = m['price'].toString();
-      } else if (m['amount'] != null) {
+      } else if (m['amount']?.toString().isNotEmpty == true) {
         price = m['amount'].toString();
       }
 
-      // Validity: duration + interval
+      // Validity: duration + interval - with null safety and default value
       String validity = '—';
       if (m['duration'] != null && m['interval'] != null) {
         validity = '${m['duration']} ${m['interval']}';
-      } else if (m['validity'] != null) {
+      } else if (m['validity']?.toString().isNotEmpty == true) {
         validity = m['validity'].toString();
       } else if (m['validityDays'] != null) {
         validity = '${m['validityDays']} days';
       }
 
-      // Status as bool and string
-      final bool statusBool = m['status'] is bool
-          ? (m['status'] as bool)
-          : (m['isActive'] == true || m['status']?.toString().toLowerCase() == 'active');
+      // Status as bool and string - with null safety
+      bool statusBool = false;
+      try {
+        if (m['status'] is bool) {
+          statusBool = m['status'] as bool;
+        } else if (m['status'] is String) {
+          statusBool = (m['status'] as String).toLowerCase() == 'active';
+        } else {
+          statusBool = m['isActive'] == true;
+        }
+      } catch (e) {
+        statusBool = false;
+      }
+      
       final statusStr = statusBool ? 'Active' : 'Inactive';
 
-      // Features from tags or features list/string
-      final features = m['tags'] is List
-          ? (m['tags'] as List).join(', ')
-          : (m['features'] is List
-              ? (m['features'] as List).join(', ')
-              : (m['features']?.toString() ?? ''));
+      // Features from tags or features list/string - with null safety
+      String features = '';
+      try {
+        if (m['tags'] is List) {
+          features = (m['tags'] as List).map((e) => e?.toString() ?? '').where((s) => s.isNotEmpty).join(', ');
+        } else if (m['features'] is List) {
+          features = (m['features'] as List).map((e) => e?.toString() ?? '').where((s) => s.isNotEmpty).join(', ');
+        } else if (m['features'] != null) {
+          features = m['features'].toString();
+        }
+      } catch (e) {
+        features = '';
+      }
 
       return {
+        'title': name, // Changed from 'name' to 'title' to match the template
         'name': name,
         'price': price,
         'validity': validity,
@@ -340,9 +362,15 @@ class PlanPage extends StatelessWidget {
         'status': statusStr,
         'statusBool': statusBool,
       };
+    } catch (e) {
+      return _getDefaultPlan();
     }
+  }
 
+  // Helper method to get default plan data
+  Map<String, dynamic> _getDefaultPlan() {
     return {
+      'title': 'Plan',
       'name': 'Plan',
       'price': 'N/A',
       'validity': '—',

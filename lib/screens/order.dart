@@ -779,28 +779,62 @@ class _OrderPageState extends State<OrderPage> {
                                             color: Colors.red[300],
                                             size: 20,
                                           ),
-                                          onPressed: () async {
-                                            final orderProvider = Provider.of<OrderProvider>(context, listen: false);
-                                            final success = await orderProvider.deleteOrder(order.id.toString());
-                                            if (success) {
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(
-                                                  content: Text("Deleted ${order.orderNumber}"),
-                                                ),
-                                              );
-                                            } else {
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(
-                                                  content: Text("Failed to delete ${order.orderNumber}"),
-                                                ),
-                                              );
-                                            }
+                                          onPressed: () {
+                                            showDialog(
+                                              context: context,
+                                              builder: (BuildContext context) {
+                                                return AlertDialog(
+                                                  backgroundColor: Colors.white,
+                                                  title: const Text("Confirm Delete"),
+                                                  content: Text("Are you sure you want to delete order ${order.orderNumber}?"),
+                                                  actions: [
+                                                    TextButton(
+                                                      child: const Text("Cancel"),
+                                                      onPressed: () {
+                                                        Navigator.of(context).pop();
+                                                      },
+                                                    ),
+                                                    TextButton(
+                                                      child: const Text("Delete", style: TextStyle(color: Colors.red)),
+                                                      onPressed: () async {
+                                                        Navigator.of(context).pop();
+                                                        final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+                                                        final success = await orderProvider.deleteOrder(order.id.toString());
+                                                        if (success) {
+                                                          if (mounted) {
+                                                            // Refresh the orders list
+                                                            final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                                                            final userId = authProvider.authData?.user.id;
+                                                            await orderProvider.fetchOrders(userId: userId);
+                                                            
+                                                            ScaffoldMessenger.of(context).showSnackBar(
+                                                              SnackBar(
+                                                                content: Text('Order ${order.orderNumber} deleted successfully'),
+                                                                backgroundColor: Colors.green,
+                                                              ),
+                                                            );
+                                                          }
+                                                        } else {
+                                                          if (mounted) {
+                                                            ScaffoldMessenger.of(context).showSnackBar(
+                                                              const SnackBar(
+                                                                content: Text('Failed to delete order'),
+                                                                backgroundColor: Colors.red,
+                                                              ),
+                                                            );
+                                                          }
+                                                        }
+                                                      },
+                                                    ),
+                                                  ],
+                                                );
+                                              },
+                                            );
                                           },
                                           tooltip: 'Delete Order',
                                           padding: EdgeInsets.zero,
                                           constraints: const BoxConstraints(),
                                         ),
-
                                         IconButton(
                                           icon: const Icon(
                                             Icons.print,

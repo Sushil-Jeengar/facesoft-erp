@@ -267,7 +267,10 @@ class _AddOrderPageState extends State<AddOrderPage> {
             )
           : DropdownButtonFormField<Supplier>(
         value: selectedSupplier,
+        dropdownColor: Colors.white,
         decoration: InputDecoration(
+          filled: true,
+          fillColor: Colors.white,
           prefixIcon: Icon(Icons.person, color: AppColors.primary),
           labelText: 'Supplier Contact Person',
           labelStyle: const TextStyle(color: AppColors.primary),
@@ -306,7 +309,10 @@ class _AddOrderPageState extends State<AddOrderPage> {
             )
           : DropdownButtonFormField<Party>(
         value: selectedParty,
+        dropdownColor: Colors.white,
         decoration: InputDecoration(
+          filled: true,
+          fillColor: Colors.white,
           prefixIcon: Icon(Icons.person, color: AppColors.primary),
           labelText: 'Party Contact Person',
           labelStyle: const TextStyle(color: AppColors.primary),
@@ -345,7 +351,10 @@ class _AddOrderPageState extends State<AddOrderPage> {
             )
           : DropdownButtonFormField<Company>(
         value: selectedCompany,
+        dropdownColor: Colors.white,
         decoration: InputDecoration(
+          filled: true,
+          fillColor: Colors.white,
           prefixIcon: Icon(Icons.business, color: AppColors.primary),
           labelText: 'Company Name',
           labelStyle: const TextStyle(color: AppColors.primary),
@@ -384,7 +393,10 @@ class _AddOrderPageState extends State<AddOrderPage> {
             )
           : DropdownButtonFormField<Transport>(
         value: selectedTransport,
+        dropdownColor: Colors.white,
         decoration: InputDecoration(
+          filled: true,
+          fillColor: Colors.white,
           prefixIcon: Icon(Icons.local_shipping, color: AppColors.primary),
           labelText: 'Transport',
           labelStyle: const TextStyle(color: AppColors.primary),
@@ -423,7 +435,10 @@ class _AddOrderPageState extends State<AddOrderPage> {
             )
           : DropdownButtonFormField<Agent>(
         value: selectedAgent,
+        dropdownColor: Colors.white,
         decoration: InputDecoration(
+          filled: true,
+          fillColor: Colors.white,
           prefixIcon: Icon(Icons.person, color: AppColors.primary),
           labelText: 'Agent',
           labelStyle: const TextStyle(color: AppColors.primary),
@@ -632,7 +647,7 @@ class _AddOrderPageState extends State<AddOrderPage> {
       } else {
         // CREATE MODE → POST new
         final response = await http.post(
-          Uri.parse('http://192.168.1.169:5000/v1/api/admin/orders'),
+          Uri.parse('http://192.168.1.141:3000/v1/api/admin/orders'),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode(orderData),
         );
@@ -728,7 +743,7 @@ class _AddOrderPageState extends State<AddOrderPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[200],
+      backgroundColor: Colors.white,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -737,7 +752,12 @@ class _AddOrderPageState extends State<AddOrderPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Card(
-                elevation: 2,
+                elevation: 0,
+                color: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                  side: BorderSide(color: Colors.grey[200]!, width: 1.0),
+                ),
                 margin: const EdgeInsets.only(bottom: 16.0),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -777,7 +797,12 @@ class _AddOrderPageState extends State<AddOrderPage> {
               ),
               
               Card(
-                elevation: 2,
+                elevation: 0,
+                color: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                  side: BorderSide(color: Colors.grey[200]!, width: 1.0),
+                ),
                 margin: const EdgeInsets.only(bottom: 16.0),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -825,7 +850,13 @@ class _AddOrderPageState extends State<AddOrderPage> {
               ),
               
               Card(
-                elevation: 2,
+                elevation: 0,
+                color: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                  side: BorderSide(color: Colors.grey[200]!, width: 1.0),
+                ),
+                margin: const EdgeInsets.only(bottom: 16.0),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -962,7 +993,10 @@ class _AddOrderPageState extends State<AddOrderPage> {
       padding: const EdgeInsets.only(bottom: 16),
       child: DropdownButtonFormField<String>(
         value: currentValue,
+        dropdownColor: Colors.white,
         decoration: InputDecoration(
+          filled: true,
+          fillColor: Colors.white,
           prefixIcon: const Icon(Icons.person, color: AppColors.primary),
           labelText: label,
           labelStyle: const TextStyle(color: AppColors.primary),
@@ -1022,7 +1056,10 @@ class _AddOrderPageState extends State<AddOrderPage> {
                 )
               : DropdownButtonFormField<String>(
                   value: item['partId']?.toString(),
+                  dropdownColor: Colors.white,
                   decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white,
                     labelText: 'Item Name',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -1175,7 +1212,10 @@ class _AddOrderPageState extends State<AddOrderPage> {
                 flex: 1,
                 child: DropdownButtonFormField<String>(
                   value: item['weightUnit'],
+                  dropdownColor: Colors.white,
                   decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white,
                     labelText: 'Unit',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),

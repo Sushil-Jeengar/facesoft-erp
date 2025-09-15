@@ -216,9 +216,12 @@ class _AddTransportPageState extends State<AddTransportPage> {
                     width: double.infinity,
                     child: ElevatedButton(
                       style: AppButtonStyles.primaryButton,
-                      onPressed: _isSaving ? null : () async {
+                      onPressed: !_isFormValid() || _isSaving ? null : () async {
+                        if (!_formKey.currentState!.validate()) {
+                          setState(() => _isSaving = false);
+                          return;
+                        }
                         setState(() => _isSaving = true);
-                        if (!_formKey.currentState!.validate()) return;
                         
                         final transportProvider = Provider.of<TransportProvider>(context, listen: false);
                         final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -332,6 +335,30 @@ class _AddTransportPageState extends State<AddTransportPage> {
     );
   }
 
+  bool _isFormValid() {
+    final nameValid = nameController.text.trim().isNotEmpty;
+    final contactPersonValid = contactPersonController.text.trim().isNotEmpty;
+    final phoneValid = phoneController.text.trim().length == 10;
+    final transportTypeValid = selectedTransportType != null && selectedTransportType!.isNotEmpty;
+    
+    // Check if email is valid if provided
+    final email = emailController.text.trim();
+    final emailValid = email.isEmpty || 
+        RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
+    
+    // Check if GST is valid if provided
+    final gst = gstController.text.trim();
+    final gstValid = gst.isEmpty || gst.length == 15;
+    
+    return nameValid && 
+           contactPersonValid && 
+           phoneValid && 
+           transportTypeValid &&
+           emailValid &&
+           gstValid &&
+           !_isSaving;
+  }
+
   Widget _buildInput(
       TextEditingController controller,
       String label,
@@ -344,6 +371,9 @@ class _AddTransportPageState extends State<AddTransportPage> {
       ]) {
     if (label == 'GST Number') {
       inputFormatters = [FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]'))];
+      inputFormatters = [
+        LengthLimitingTextInputFormatter(15),
+      ];
     } else if (label == 'Phone Number') {
       inputFormatters = [
         FilteringTextInputFormatter.digitsOnly,
@@ -466,6 +496,7 @@ class _AddTransportPageState extends State<AddTransportPage> {
       List<String> items,
       ValueChanged<String?> onChanged,
       ) {
+    final isRequired = label == 'Transport Type' || label == 'Party Type' || label == 'Status';
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: DropdownButtonFormField<String>(
@@ -480,9 +511,14 @@ class _AddTransportPageState extends State<AddTransportPage> {
             borderSide: const BorderSide(color: AppColors.primary),
           ),
         ),
+        validator: (value) {
+          if (isRequired && (value == null || value.isEmpty)) {
+            return 'Please select $label';
+          }
+          return null;
+        },
         items: items.map((val) => DropdownMenuItem(value: val, child: Text(val))).toList(),
         onChanged: onChanged,
-        validator: (val) => val == null || val.isEmpty ? 'Select $label' : null,
       ),
     );
   }

@@ -65,7 +65,7 @@ class SupplierProvider with ChangeNotifier {
     try {
       final result = await SupplierApiService.createSupplier(supplierData, imageFile: imageFile);
       if (result['success']) {
-        await fetchSuppliers();
+        await fetchSuppliers(userId: supplierData['user_id']);
         return {'success': true};
       } else {
         _errorMessage = result['message'];

@@ -237,6 +237,7 @@ class _CompanyPageState extends State<CompanyPage> {
                                   context: context,
                                   builder: (BuildContext context) {
                                     return AlertDialog(
+                                      backgroundColor: Colors.white,
                                       title: const Text("Confirm Delete"),
                                       content: const Text("Are you sure you want to delete this company?"),
                                       actions: [

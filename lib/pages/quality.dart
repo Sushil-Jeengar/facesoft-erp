@@ -42,52 +42,52 @@
             }).toList();
       });
     }
-  
-    void _showDeleteDialog(BuildContext context, int id) {
-      showDialog(
+    
+    Future<void> _showDeleteDialog(BuildContext context, int id) async {
+      return showDialog<void>(
         context: context,
-        builder:
-            (context) => AlertDialog(
-              title: const Text('Delete Quality'),
-              content: const Text(
-                'Are you sure you want to delete this quality?',
+        builder: (BuildContext context) {
+          return AlertDialog(
+            backgroundColor: Colors.white,
+            title: const Text('Confirm Delete'),
+            content: const Text('Are you sure you want to delete this quality?'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
               ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () async {
-                    try {
-                      final success = await Provider.of<QualityProvider>(
-                        context,
-                        listen: false,
-                      ).deleteQuality(id);
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              success
-                                  ? 'Quality deleted successfully'
-                                  : 'Failed to delete quality',
-                            ),
+              TextButton(
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  try {
+                    final success = await Provider.of<QualityProvider>(
+                      context,
+                      listen: false,
+                    ).deleteQuality(id);
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            success
+                                ? 'Quality deleted successfully'
+                                : 'Failed to delete quality',
                           ),
-                        );
-                      }
-                    } catch (e) {
-                      if (mounted) {
-                        ScaffoldMessenger.of(
-                          context,
-                        ).showSnackBar(SnackBar(content: Text('Error: $e')));
-                      }
+                        ),
+                      );
                     }
-                    Navigator.pop(context);
-                  },
-                  child: const Text('Delete'),
-                ),
-              ],
-            ),
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error: $e')),
+                      );
+                    }
+                  }
+                },
+                child: const Text('Delete', style: TextStyle(color: Colors.red)),
+              ),
+            ],
+          );
+        },
       );
     }
   

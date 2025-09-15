@@ -70,7 +70,7 @@ class TransportProvider with ChangeNotifier {
     try {
       final createdTransport = await TransportApiService.createTransport(transport);
       if (createdTransport != null) {
-        await fetchTransports(); // Refresh the list after creation
+        await fetchTransports(userId: transport.userId); // Refresh the list after creation
         notifyListeners();
         return true;
       } else {

@@ -135,6 +135,7 @@ class _ItemsPageState extends State<ItemsPage> {
                                     context: context,
                                     builder: (BuildContext context) {
                                       return AlertDialog(
+                                        backgroundColor: Colors.white,
                                         title: const Text("Delete Item"),
                                         content: const Text("Are you sure you want to delete this item?"),
                                         actions: <Widget>[

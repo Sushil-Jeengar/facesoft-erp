@@ -243,6 +243,7 @@ class _AgentPageState extends State<AgentPage> {
                                           context: context,
                                           builder: (BuildContext context) {
                                             return AlertDialog(
+                                              backgroundColor: Colors.white,
                                               title: const Text("Delete Agent"),
                                               content: const Text(
                                                 "Are you sure you want to delete this agent?",

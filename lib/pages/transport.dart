@@ -23,20 +23,24 @@ class _TransportPageState extends State<TransportPage> {
   void initState() {
     super.initState();
     _searchController.addListener(_filterTransports);
+    
+    // Use addPostFrameCallback to ensure this runs after the first frame is rendered
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final transportProvider = Provider.of<TransportProvider>(context, listen: false);
+      if (transportProvider.transports.isEmpty) {
+        final auth = Provider.of<AuthProvider>(context, listen: false);
+        final userId = auth.authData?.user.id;
+        transportProvider.fetchTransports(userId: userId);
+      } else {
+        _filterTransports();
+      }
+    });
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Refresh data when the page is revisited
-    final transportProvider = Provider.of<TransportProvider>(context, listen: false);
-    if (transportProvider.transports.isEmpty) {
-      final auth = Provider.of<AuthProvider>(context, listen: false);
-      final userId = auth.authData?.user.id;
-      transportProvider.fetchTransports(userId: userId);
-    } else {
-      _filterTransports();
-    }
+    // No need to fetch data here anymore
   }
 
   void _filterTransports() {
@@ -284,8 +288,9 @@ class _TransportPageState extends State<TransportPage> {
                                   context: context,
                                   builder: (BuildContext context) {
                                     return AlertDialog(
-                                      title: const Text("Delete Transport"),
-                                      content: const Text("Are you sure you want to delete this transport?"),
+                                      backgroundColor: Colors.white,
+                                      title: const Text('Confirm Delete'),
+                                      content: const Text('Are you sure you want to delete this transport?'),
                                       actions: <Widget>[
                                         TextButton(
                                           child: const Text("Cancel"),

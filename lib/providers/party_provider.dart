@@ -67,7 +67,7 @@ class PartyProvider with ChangeNotifier {
     try {
       final result = await PartiesApiService.createParty(party, imageFile: imageFile);
       if (result['success']) {
-        await fetchParties(); // Refresh the list
+        await fetchParties(userId: party.userId); // Refresh the list
         return {'success': true, 'message': 'Party created successfully'};
       } else {
         _error = result['message'];
