@@ -940,7 +940,7 @@ class _OrderPageState extends State<OrderPage> {
                                                 Navigator.push(
                                                   context,
                                                   MaterialPageRoute(
-                                                    builder: (context) => OrderDetailPage(),
+                                                    builder: (context) => OrderDetailPage(orderId: order.id!),
                                                   ),
                                                 );
                                               },

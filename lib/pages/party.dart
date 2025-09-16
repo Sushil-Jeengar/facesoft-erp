@@ -16,36 +16,14 @@ class PartyPage extends StatefulWidget {
 }
 
 class _PartyPageState extends State<PartyPage> {
-  final TextEditingController _searchController = TextEditingController();
-  List<Party> filteredParties = [];
 
   @override
   void initState() {
     super.initState();
-    _searchController.addListener(_filterParties);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       final userId = auth.authData?.user.id;
       Provider.of<PartyProvider>(context, listen: false).fetchParties(userId: userId);
-    });
-  }
-
-  void _filterParties() {
-    final query = _searchController.text.toLowerCase();
-    final partyProvider = Provider.of<PartyProvider>(context, listen: false);
-    setState(() {
-      filteredParties = partyProvider.parties.where((party) {
-        final contactPerson = party.contactPerson?.toLowerCase() ?? '';
-        final id = party.id;
-        final email = party.email?.toLowerCase() ?? '';
-        final phone = party.phone?.toLowerCase() ?? '';
-        final address = _getFullAddress(party).toLowerCase();
-
-        return contactPerson.contains(query) ||
-            email.contains(query) ||
-            phone.contains(query) ||
-            address.contains(query);
-      }).toList();
     });
   }
 
@@ -65,7 +43,6 @@ class _PartyPageState extends State<PartyPage> {
 
   @override
   void dispose() {
-    _searchController.dispose();
     super.dispose();
   }
 
@@ -106,35 +83,11 @@ class _PartyPageState extends State<PartyPage> {
                 ),
               );
             }
-            filteredParties = partyProvider.parties;
-            return Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Search by name, email, mobile, or location',
-                      prefixIcon: const Icon(Icons.search),
-                      filled: true,
-                      fillColor: Colors.white,
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 10,
-                        horizontal: 20,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Colors.grey),
-                      ),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 80), // Added bottom padding of 80 to accommodate the FAB
-                    itemCount: filteredParties.length,
-                    itemBuilder: (context, index) {
-                      final party = filteredParties[index];
+            return ListView.builder(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 80), // Added bottom padding of 80 to accommodate the FAB
+              itemCount: partyProvider.parties.length,
+              itemBuilder: (context, index) {
+                      final party = partyProvider.parties[index];
                       return Card(
                         elevation: 1,
                         color: Colors.white,
@@ -289,13 +242,10 @@ class _PartyPageState extends State<PartyPage> {
                         ),
                       );
                     },
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
-        floatingActionButton: FloatingActionButton.extended(
+              );
+            },
+          ),
+          floatingActionButton: FloatingActionButton.extended(
           backgroundColor: AppColors.primary,
           icon: const Icon(Icons.add, color: Colors.white),
           label: const Text("Add Party", style: AppTextStyles.primaryButton),

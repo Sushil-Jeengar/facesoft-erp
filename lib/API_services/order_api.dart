@@ -87,6 +87,33 @@ class OrderApiService {
     }
   }
 
+  static Future<Order?> getOrderById(int orderId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${API_Data.orders}/$orderId'),
+      );
+      
+      print("Get Order By ID Status Code: ${response.statusCode}");
+      
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+        if (decoded['success'] == true && decoded['data'] != null) {
+          print("Successfully fetched order with ID: $orderId");
+          return Order.fromJson(decoded['data']);
+        } else {
+          print("API responded with success=false or missing data");
+          return null;
+        }
+      } else {
+        print("HTTP Error: ${response.statusCode}");
+        return null;
+      }
+    } catch (e) {
+      print("Exception caught in getOrderById: $e");
+      return null;
+    }
+  }
+
   static Future<bool> bulkDeleteOrders(List<String> orderIds) async {
     try {
       final response = await http.post(
