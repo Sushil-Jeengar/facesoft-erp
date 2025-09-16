@@ -19,6 +19,7 @@ import 'dart:convert';
 import 'package:facesoft/screens/home_screen.dart';
 import 'package:facesoft/model/order_model.dart';
 import 'package:facesoft/API_services/order_api.dart';
+import 'package:facesoft/API_services/api_data.dart';
 import 'package:facesoft/providers/auth_provider.dart';
 
 
@@ -647,7 +648,7 @@ class _AddOrderPageState extends State<AddOrderPage> {
       } else {
         // CREATE MODE → POST new
         final response = await http.post(
-          Uri.parse('http://192.168.1.141:3000/v1/api/admin/orders'),
+          Uri.parse(API_Data.orders),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode(orderData),
         );
@@ -887,7 +888,7 @@ class _AddOrderPageState extends State<AddOrderPage> {
                       _buildInput(
                         grandTotalController,
                         'Grand Total',
-                        Icons.attach_money,
+                        Icons.currency_rupee,
                         TextInputType.number,
                         true, // readOnly
                       ),

@@ -98,23 +98,67 @@ class _OrderPageState extends State<OrderPage> {
 
       // Apply payment status filter
       if (_filter != 'All') {
+        final filterType = _filter.toLowerCase();
+        print('\n=== Applying $filterType filter ===');
+        
         final filtered = tempOrders.where((order) {
-          // Normalize both the filter and payment status for comparison
-          final status = order.paymentStatus?.toLowerCase().trim() ?? 'unknown';
-          final filterValue = _filter.toLowerCase().trim();
+          // Get the payment status and handle null/empty cases
+          String status = order.paymentStatus?.toLowerCase().trim() ?? 'unpaid';
+          status = status == 'null' ? 'unpaid' : status; // Handle 'null' string
           
-          // Handle different possible status values
-          if (filterValue == 'paid') {
-            return status == 'paid' || status == 'complete';
-          } else if (filterValue == 'unpaid') {
-            return status == 'unpaid' || status == 'pending' || status == 'unknown';
-          } else if (filterValue == 'partial') {
-            return status.contains('partial') || status == 'partially paid';
+          print('Order ${order.orderNumber} - Status: "$status"');
+          
+          // Handle different filter cases
+          switch (filterType) {
+            case 'paid':
+              // First check for exact matches
+              if (status == 'paid' || 
+                  status == 'complete' ||
+                  status == 'completed' ||
+                  status == 'full' ||
+                  status == 'fulfilled' ||
+                  status == 'settled' ||
+                  status == 'closed') {
+                print('  → Matches paid filter (exact match)');
+                return true;
+              }
+              
+              // Then check for contains, but only if it's not 'unpaid'
+              if (status.contains('paid') && status != 'unpaid') {
+                print('  → Matches paid filter (contains "paid")');
+                return true;
+              }
+              
+              print('  → Does not match paid filter');
+              return false;
+              
+            case 'unpaid':
+              final isUnpaid = status == 'unpaid' || 
+                             status == 'pending' || 
+                             status == 'due' ||
+                             status.isEmpty ||
+                             status == 'open' ||
+                             status == 'unsettled';
+              print('  → Matches unpaid filter: $isUnpaid');
+              return isUnpaid;
+              
+            case 'partial':
+              final isPartial = status.contains('partial') || 
+                               status == 'partially paid' ||
+                               status == 'partially' ||
+                               status == 'part payment' ||
+                               status.contains('part_');
+              print('  → Matches partial filter: $isPartial');
+              return isPartial;
+              
+            default:
+              final matches = status == filterType;
+              print('  → Matches default filter ($filterType): $matches');
+              return matches;
           }
-          return status == filterValue;
         }).toList();
         
-        print('After status filter (${_filter}): ${filtered.length} orders');
+        print('After status filter (${_filter}): ${filtered.length} orders found');
         tempOrders = filtered;
       }
 
@@ -474,9 +518,12 @@ class _OrderPageState extends State<OrderPage> {
                                   _selectedStartDate = tempStartDate;
                                   _selectedEndDate = tempEndDate;
                                   _filter = tempFilter;
+                                  print('Applying filters - Status: $_filter, Start: $_selectedStartDate, End: $_selectedEndDate');
                                 });
                                 Navigator.of(context).pop();
-                                _applyFilters();
+                                WidgetsBinding.instance.addPostFrameCallback((_) {
+                                  _applyFilters();
+                                });
                               },
                               style: AppButtonStyles.primaryButton,
                               child: const Text(
@@ -905,7 +952,7 @@ class _OrderPageState extends State<OrderPage> {
                                   Row(
                                     children: [
                                       const Icon(
-                                        Icons.attach_money,
+                                        Icons.currency_rupee,
                                         size: 20,
                                         color: AppColors.primary,
                                       ),
@@ -970,18 +1017,23 @@ class _OrderPageState extends State<OrderPage> {
                                             size: 20,
                                           ),
                                           onPressed: () {
-                                            // Navigate to AddOrderPage with the order to edit
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) => AddOrderPage(editingOrder: order),
-                                              ),
-                                            ).then((_) {
-                                              // Refresh the orders list when returning from edit
-                                              final authProvider = Provider.of<AuthProvider>(context, listen: false);
-                                              final userId = authProvider.authData?.user.id;
-                                              Provider.of<OrderProvider>(context, listen: false).fetchOrders(userId: userId);
-                                            });
+                                            // Use the parent's onEditOrder callback to maintain navigation state
+                                            if (widget.onEditOrder != null) {
+                                              widget.onEditOrder!(order);
+                                            } else {
+                                              // Fallback to regular navigation if callback is not provided
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) => AddOrderPage(editingOrder: order),
+                                                ),
+                                              ).then((_) {
+                                                // Refresh the orders list when returning from edit
+                                                final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                                                final userId = authProvider.authData?.user.id;
+                                                Provider.of<OrderProvider>(context, listen: false).fetchOrders(userId: userId);
+                                              });
+                                            }
                                           },
                                           tooltip: 'Edit Order',
                                           padding: EdgeInsets.zero,
@@ -1066,23 +1118,23 @@ class _OrderPageState extends State<OrderPage> {
                                           padding: EdgeInsets.zero,
                                           constraints: const BoxConstraints(),
                                         ),
-                                        IconButton(
-                                          icon: const Icon(
-                                            Icons.download,
-                                            color: Colors.blue,
-                                            size: 20,
-                                          ),
-                                          onPressed: () {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(
-                                                content: Text("Download ${order.orderNumber}"),
-                                              ),
-                                            );
-                                          },
-                                          tooltip: 'Download Order',
-                                          padding: EdgeInsets.zero,
-                                          constraints: const BoxConstraints(),
-                                        ),
+                                        // IconButton(
+                                        //   icon: const Icon(
+                                        //     Icons.download,
+                                        //     color: Colors.blue,
+                                        //     size: 20,
+                                        //   ),
+                                        //   onPressed: () {
+                                        //     ScaffoldMessenger.of(context).showSnackBar(
+                                        //       SnackBar(
+                                        //         content: Text("Download ${order.orderNumber}"),
+                                        //       ),
+                                        //     );
+                                        //   },
+                                        //   tooltip: 'Download Order',
+                                        //   padding: EdgeInsets.zero,
+                                        //   constraints: const BoxConstraints(),
+                                        // ),
                                         Flexible(
                                           child: ConstrainedBox(
                                             constraints: const BoxConstraints(

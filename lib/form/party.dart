@@ -70,6 +70,7 @@ class _AddPartyPageState extends State<AddPartyPage> {
   Future<void> pickLogo() async {
     showModalBottomSheet(
       context: context,
+      backgroundColor: Colors.white,
       builder: (BuildContext context) {
         return SafeArea(
           child: Wrap(
@@ -692,10 +693,11 @@ class _AddPartyPageState extends State<AddPartyPage> {
     final List<dynamic>? stateObjs = matches.isNotEmpty
         ? (matches.first as Map<String, dynamic>)['state'] as List<dynamic>?
         : null;
-    final List<String> states = stateObjs
+    final List<String> states = (stateObjs
         ?.map((s) => (s as Map<String, dynamic>)['name'].toString())
         .toList() ??
-        [];
+        [])
+      ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
     if (states.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No states found for selected country')),
@@ -704,6 +706,7 @@ class _AddPartyPageState extends State<AddPartyPage> {
     }
     showModalBottomSheet(
       context: context,
+      backgroundColor: Colors.white,
       builder: (context) {
         return SafeArea(
           child: ListView.separated(
@@ -764,6 +767,7 @@ class _AddPartyPageState extends State<AddPartyPage> {
     }
     showModalBottomSheet(
       context: context,
+      backgroundColor: Colors.white,
       builder: (context) {
         return SafeArea(
           child: ListView.separated(
@@ -772,7 +776,14 @@ class _AddPartyPageState extends State<AddPartyPage> {
             itemBuilder: (context, index) {
               final String cityName = cities[index];
               return ListTile(
-                title: Text(cityName),
+                title: Text(
+                  cityName,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.normal,
+                    fontFamily: 'Roboto',
+                  ),
+                ),
                 onTap: () {
                   Navigator.pop(context);
                   setState(() {

@@ -172,7 +172,7 @@ class PlanPage extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          _infoRow(Icons.attach_money, "Offer Price: ${plan['price']}") ,
+                          _infoRow(Icons.currency_rupee, "Offer Price: ${plan['price']}") ,
                           _infoRow(Icons.calendar_today, "Validity: ${plan['validity']}",
                           ),
                           Row(

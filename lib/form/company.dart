@@ -293,10 +293,11 @@ class _AddCompanyPageState extends State<AddCompanyPage> {
     final List<dynamic>? stateObjs = matches.isNotEmpty
         ? (matches.first as Map<String, dynamic>)['state'] as List<dynamic>?
         : null;
-    final List<String> states = stateObjs
+    final List<String> states = (stateObjs
             ?.map((s) => (s as Map<String, dynamic>)['name'].toString())
             .toList() ??
-        [];
+        [])
+      ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
     if (states.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No states found for selected country')),
