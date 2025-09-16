@@ -116,11 +116,14 @@ class OrderApiService {
 
   static Future<bool> bulkDeleteOrders(List<String> orderIds) async {
     try {
+      // Convert string IDs to integers
+      final idsAsInts = orderIds.map((id) => int.tryParse(id) ?? 0).toList();
+      
       final response = await http.post(
         Uri.parse(API_Data.bulkDeleteOrders),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
-          'ids': orderIds,
+          'ids': idsAsInts,
         }),
       );
       
