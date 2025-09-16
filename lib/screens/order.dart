@@ -30,54 +30,115 @@ class _OrderPageState extends State<OrderPage> {
   @override
   void initState() {
     super.initState();
+    _searchController.addListener(_onSearchChanged);
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final userId = authProvider.authData?.user.id;
-      Provider.of<OrderProvider>(context, listen: false).fetchOrders(userId: userId);
+      final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+      orderProvider.addListener(_onOrdersChanged);
+      orderProvider.fetchOrders(userId: userId).then((_) {
+        _applyFilters();
+      });
     });
-    _searchController.addListener(_onSearchChanged);
   }
-
+  
   @override
   void dispose() {
     _searchController.removeListener(_onSearchChanged);
+    final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+    orderProvider.removeListener(_onOrdersChanged);
     _searchController.dispose();
     super.dispose();
   }
+  
+  void _onOrdersChanged() {
+    if (mounted) {
+      setState(() {
+        _filteredOrders = List.from(Provider.of<OrderProvider>(context, listen: false).orders);
+        _applyFilters();
+      });
+    }
+  }
 
   void _onSearchChanged() {
-    _applyFilters();
+    if (_searchController.text.isEmpty) {
+      // If search is cleared, reset filters
+      setState(() {
+        _filter = 'All';
+        _selectedStartDate = null;
+        _selectedEndDate = null;
+        _filteredOrders = List.from(Provider.of<OrderProvider>(context, listen: false).orders);
+      });
+    } else {
+      _applyFilters();
+    }
   }
 
   void _applyFilters() {
-    final orderProvider = Provider.of<OrderProvider>(context, listen: false);
-    List<Order> tempOrders = List.from(orderProvider.orders);
+    if (!mounted) return;
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      
+      final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+      List<Order> tempOrders = List.from(orderProvider.orders);
 
-    if (_filter != 'All') {
-      tempOrders = tempOrders.where((order) => order.paymentStatus == _filter).toList();
-    }
-    if (_searchController.text.isNotEmpty) {
-      final query = _searchController.text.toLowerCase();
-      tempOrders = tempOrders.where((order) {
-        final orderNumber = order.orderNumber?.toLowerCase() ?? '';
+      // Apply payment status filter
+      if (_filter != 'All') {
+        tempOrders = tempOrders.where((order) => order.paymentStatus == _filter).toList();
+      }
 
-        return orderNumber.contains(query);
-      }).toList();
-    }
+      // Apply search filter
+      if (_searchController.text.isNotEmpty) {
+        final query = _searchController.text.toLowerCase();
+        tempOrders = tempOrders.where((order) {
+          final orderNumber = order.orderNumber?.toLowerCase() ?? '';
+          final partyId = order.partyId?.toString() ?? '';
+          
+          return orderNumber.contains(query) || 
+                partyId.contains(query);
+        }).toList();
+      }
 
-    if (_selectedStartDate != null) {
-      tempOrders = tempOrders.where((order) {
-        return order.orderDate != null &&
-            order.orderDate!.isAfter(_selectedStartDate!.subtract(const Duration(days: 1)));
-      }).toList();
-    }
-    if (_selectedEndDate != null) {
-      tempOrders = tempOrders.where((order) {
-        return order.orderDate != null &&
-            order.orderDate!.isBefore(_selectedEndDate!.add(const Duration(days: 1)));
-      }).toList();
-    }
-    _filteredOrders = tempOrders; // No setState here
+      // Apply date range filter
+      if (_selectedStartDate != null || _selectedEndDate != null) {
+        tempOrders = tempOrders.where((order) {
+          if (order.orderDate == null) return false;
+          
+          final orderDate = order.orderDate!;
+          final orderDateOnly = DateTime(orderDate.year, orderDate.month, orderDate.day);
+          
+          // Check start date only
+          if (_selectedStartDate != null && _selectedEndDate == null) {
+            final startDateOnly = DateTime(_selectedStartDate!.year, _selectedStartDate!.month, _selectedStartDate!.day);
+            return orderDateOnly.isAtSameMomentAs(startDateOnly) || orderDateOnly.isAfter(startDateOnly);
+          }
+          
+          // Check end date only
+          if (_selectedEndDate != null && _selectedStartDate == null) {
+            final endDateOnly = DateTime(_selectedEndDate!.year, _selectedEndDate!.month, _selectedEndDate!.day);
+            return orderDateOnly.isAtSameMomentAs(endDateOnly) || orderDateOnly.isBefore(endDateOnly);
+          }
+          
+          // Check both start and end dates
+          if (_selectedStartDate != null && _selectedEndDate != null) {
+            final startDateOnly = DateTime(_selectedStartDate!.year, _selectedStartDate!.month, _selectedStartDate!.day);
+            final endDateOnly = DateTime(_selectedEndDate!.year, _selectedEndDate!.month, _selectedEndDate!.day);
+            return (orderDateOnly.isAtSameMomentAs(startDateOnly) || orderDateOnly.isAfter(startDateOnly)) &&
+                   (orderDateOnly.isAtSameMomentAs(endDateOnly) || orderDateOnly.isBefore(endDateOnly));
+          }
+          
+          return true;
+        }).toList();
+      }
+      
+      if (mounted) {
+        setState(() {
+          _filteredOrders = tempOrders;
+        });
+      }
+    });
   }
 
 
@@ -185,6 +246,10 @@ class _OrderPageState extends State<OrderPage> {
                                       if (pickedDate != null) {
                                         setState(() {
                                           tempStartDate = pickedDate;
+                                          // Ensure end date is after start date
+                                          if (tempEndDate != null && tempEndDate!.isBefore(tempStartDate!)) {
+                                            tempEndDate = null;
+                                          }
                                         });
                                       }
                                     },
@@ -320,9 +385,9 @@ class _OrderPageState extends State<OrderPage> {
                                 setState(() {
                                   _selectedStartDate = tempStartDate;
                                   _selectedEndDate = tempEndDate;
-                                  _applyFilters();
                                 });
                                 Navigator.of(context).pop();
+                                _applyFilters();
                               },
                               style: AppButtonStyles.primaryButton,
                               child: const Text(
@@ -470,10 +535,8 @@ class _OrderPageState extends State<OrderPage> {
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: OutlinedButton(
         onPressed: () {
-          setState(() {
-            _filter = label;
-            _applyFilters();
-          });
+          _filter = label;
+          _applyFilters();
         },
         style: isSelected ? AppButtonStyles.primaryButton : AppButtonStyles.secondaryButton,
         child: Text(
@@ -570,8 +633,11 @@ class _OrderPageState extends State<OrderPage> {
         if (orderProvider.orders.isEmpty) {
           return const Center(child: Text('No orders found'));
         }
-        _filteredOrders = orderProvider.orders;
-        _applyFilters();
+        // Initialize filtered orders if empty or if orders have changed
+        if (_filteredOrders.isEmpty || _filteredOrders.length != orderProvider.orders.length) {
+          _filteredOrders = List.from(orderProvider.orders);
+        }
+        
         return Scaffold(
           backgroundColor: Colors.grey[200],
           body: Column(
@@ -600,7 +666,9 @@ class _OrderPageState extends State<OrderPage> {
                               ),
                             ),
                             onChanged: (value) {
-                              _applyFilters();
+                              setState(() {
+                                _applyFilters();
+                              });
                             },
                           ),
                         ),
@@ -983,7 +1051,8 @@ class _OrderPageState extends State<OrderPage> {
               ? null
               : FloatingActionButton.extended(
             onPressed: () {
-              widget.onTabSelected(2);
+              // Navigate to the Add Orders tab in HomeScreen
+              widget.onTabSelected(3);
             },
             icon: const Icon(Icons.add, color: Colors.white, size: 25),
             label: const Text(
