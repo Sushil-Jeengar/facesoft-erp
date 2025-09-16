@@ -113,7 +113,7 @@ class _AgentPageState extends State<AgentPage> {
                       ),
                     )
                     : ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 80), // Added bottom padding of 80 to accommodate the FAB
+                      padding: const EdgeInsets.all(16), // Added bottom padding of 80 to accommodate the FAB
                       itemCount: filteredAgents.length,
                       itemBuilder: (context, index) {
                         final agent = filteredAgents[index];

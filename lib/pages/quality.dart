@@ -116,26 +116,26 @@
         ),
         body: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Search by name, code, or color',
-                  prefixIcon: const Icon(Icons.search),
-                  filled: true,
-                  fillColor: Colors.white,
-                  contentPadding: const EdgeInsets.symmetric(
-                    vertical: 10,
-                    horizontal: 20,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.grey),
-                  ),
-                ),
-              ),
-            ),
+            // Padding(
+            //   padding: const EdgeInsets.all(16.0),
+            //   child: TextField(
+            //     controller: _searchController,
+            //     decoration: InputDecoration(
+            //       hintText: 'Search by name, code, or color',
+            //       prefixIcon: const Icon(Icons.search),
+            //       filled: true,
+            //       fillColor: Colors.white,
+            //       contentPadding: const EdgeInsets.symmetric(
+            //         vertical: 10,
+            //         horizontal: 20,
+            //       ),
+            //       border: OutlineInputBorder(
+            //         borderRadius: BorderRadius.circular(12),
+            //         borderSide: const BorderSide(color: Colors.grey),
+            //       ),
+            //     ),
+            //   ),
+            // ),
             Expanded(
               child:
                   provider.isLoading
@@ -148,7 +148,7 @@
                         ),
                       )
                       : ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 80), // Added bottom padding of 80 to accommodate the FAB
+                        padding: const EdgeInsets.all(16),
                         itemCount: filteredQualities.length,
                         itemBuilder: (context, index) {
                           final quality = filteredQualities[index];
