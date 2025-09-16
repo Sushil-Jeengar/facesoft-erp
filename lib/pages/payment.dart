@@ -17,6 +17,7 @@ class _PaymentPageState extends State<PaymentPage> {
   Future<void> pickReceipt({Function? onImagePicked}) async {
     showModalBottomSheet(
       context: context,
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -68,6 +69,7 @@ class _PaymentPageState extends State<PaymentPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
