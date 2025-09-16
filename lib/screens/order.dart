@@ -46,8 +46,18 @@ class _OrderPageState extends State<OrderPage> {
   @override
   void dispose() {
     _searchController.removeListener(_onSearchChanged);
-    final orderProvider = Provider.of<OrderProvider>(context, listen: false);
-    orderProvider.removeListener(_onOrdersChanged);
+    // Remove the listener without using Provider.of
+    try {
+      // This is a safer way to remove the listener
+      // It will only remove if the context is still mounted
+      if (mounted) {
+        final orderProvider = context.read<OrderProvider>();
+        orderProvider.removeListener(_onOrdersChanged);
+      }
+    } catch (e) {
+      // Ignore any errors when the widget is being disposed
+      debugPrint('Error in dispose: $e');
+    }
     _searchController.dispose();
     super.dispose();
   }
@@ -63,12 +73,10 @@ class _OrderPageState extends State<OrderPage> {
 
   void _onSearchChanged() {
     if (_searchController.text.isEmpty) {
-      // If search is cleared, reset filters
+      // If search is cleared, reset search but keep other filters
       setState(() {
-        _filter = 'All';
-        _selectedStartDate = null;
-        _selectedEndDate = null;
         _filteredOrders = List.from(Provider.of<OrderProvider>(context, listen: false).orders);
+        _applyFilters();
       });
     } else {
       _applyFilters();
@@ -83,10 +91,31 @@ class _OrderPageState extends State<OrderPage> {
       
       final orderProvider = Provider.of<OrderProvider>(context, listen: false);
       List<Order> tempOrders = List.from(orderProvider.orders);
+      
+      print('Total orders before filtering: ${tempOrders.length}');
+      print('Current filter: $_filter');
+      print('Date range: ${_selectedStartDate} to ${_selectedEndDate}');
 
       // Apply payment status filter
       if (_filter != 'All') {
-        tempOrders = tempOrders.where((order) => order.paymentStatus == _filter).toList();
+        final filtered = tempOrders.where((order) {
+          // Normalize both the filter and payment status for comparison
+          final status = order.paymentStatus?.toLowerCase().trim() ?? 'unknown';
+          final filterValue = _filter.toLowerCase().trim();
+          
+          // Handle different possible status values
+          if (filterValue == 'paid') {
+            return status == 'paid' || status == 'complete';
+          } else if (filterValue == 'unpaid') {
+            return status == 'unpaid' || status == 'pending' || status == 'unknown';
+          } else if (filterValue == 'partial') {
+            return status.contains('partial') || status == 'partially paid';
+          }
+          return status == filterValue;
+        }).toList();
+        
+        print('After status filter (${_filter}): ${filtered.length} orders');
+        tempOrders = filtered;
       }
 
       // Apply search filter
@@ -103,11 +132,15 @@ class _OrderPageState extends State<OrderPage> {
 
       // Apply date range filter
       if (_selectedStartDate != null || _selectedEndDate != null) {
-        tempOrders = tempOrders.where((order) {
-          if (order.orderDate == null) return false;
+        final filtered = tempOrders.where((order) {
+          if (order.orderDate == null) {
+            print('Order ${order.orderNumber} has no date');
+            return false;
+          }
           
           final orderDate = order.orderDate!;
           final orderDateOnly = DateTime(orderDate.year, orderDate.month, orderDate.day);
+          print('Checking order ${order.orderNumber} with date: $orderDateOnly');
           
           // Check start date only
           if (_selectedStartDate != null && _selectedEndDate == null) {
@@ -131,9 +164,12 @@ class _OrderPageState extends State<OrderPage> {
           
           return true;
         }).toList();
+        print('After date filter: ${filtered.length} orders');
+        tempOrders = filtered;
       }
       
       if (mounted) {
+        print('Final filtered orders count: ${tempOrders.length}');
         setState(() {
           _filteredOrders = tempOrders;
         });
@@ -146,6 +182,7 @@ class _OrderPageState extends State<OrderPage> {
     final orderProvider = Provider.of<OrderProvider>(context, listen: false);
     DateTime? tempStartDate = _selectedStartDate;
     DateTime? tempEndDate = _selectedEndDate;
+    String tempFilter = _filter;
 
     await showModalBottomSheet(
       context: context,
@@ -210,6 +247,57 @@ class _OrderPageState extends State<OrderPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            const SizedBox(height: 16),
+                            Text(
+                              'Filter by Status',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.black.withOpacity(0.3)),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: DropdownButton<String>(
+                                value: tempFilter,
+                                isExpanded: true,
+                                underline: const SizedBox(),
+                                dropdownColor: Colors.white,
+                                style: const TextStyle(
+                                  color: Colors.black87,
+                                  fontSize: 14,
+                                ),
+                                items: <String>['All', 'Paid', 'Unpaid', 'Partial']
+                                    .map<DropdownMenuItem<String>>((String value) {
+                                  return DropdownMenuItem<String>(
+                                    value: value,
+                                    child: Text(
+                                      value,
+                                      style: const TextStyle(fontSize: 14, color: Colors.black87),
+                                    ),
+                                  );
+                                }).toList(),
+                                onChanged: (String? newValue) {
+                                  if (newValue != null) {
+                                    setState(() {
+                                      tempFilter = newValue;
+                                    });
+                                  }
+                                },
+                              ),
+                            ),
                             const SizedBox(height: 20),
                             Text(
                               'Filter by Date Range',
@@ -385,6 +473,7 @@ class _OrderPageState extends State<OrderPage> {
                                 setState(() {
                                   _selectedStartDate = tempStartDate;
                                   _selectedEndDate = tempEndDate;
+                                  _filter = tempFilter;
                                 });
                                 Navigator.of(context).pop();
                                 _applyFilters();
@@ -493,18 +582,6 @@ class _OrderPageState extends State<OrderPage> {
     }
   }
 
-  void _bulkPrint() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Printing orders: ${_selectedOrderNumbers.join(", ")}'),
-      ),
-    );
-    setState(() {
-      _selectedOrderNumbers.clear();
-      _isSelectionMode = false;
-    });
-  }
-
   void _bulkShare() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -535,13 +612,28 @@ class _OrderPageState extends State<OrderPage> {
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: OutlinedButton(
         onPressed: () {
-          _filter = label;
+          setState(() {
+            _filter = label;
+          });
           _applyFilters();
         },
-        style: isSelected ? AppButtonStyles.primaryButton : AppButtonStyles.secondaryButton,
+        style: OutlinedButton.styleFrom(
+          backgroundColor: Colors.white,
+          side: BorderSide(
+            color: isSelected ? AppColors.primary : Colors.grey[300]!,
+            width: 1.5,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        ),
         child: Text(
           label,
-          style: isSelected ? AppTextStyles.primaryButton : AppTextStyles.secondryButton,
+          style: TextStyle(
+            color: isSelected ? AppColors.primary : Colors.grey[700],
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
         ),
       ),
     );
@@ -633,9 +725,15 @@ class _OrderPageState extends State<OrderPage> {
         if (orderProvider.orders.isEmpty) {
           return const Center(child: Text('No orders found'));
         }
-        // Initialize filtered orders if empty or if orders have changed
-        if (_filteredOrders.isEmpty || _filteredOrders.length != orderProvider.orders.length) {
-          _filteredOrders = List.from(orderProvider.orders);
+        // Only initialize filtered orders if it's empty and we have orders
+        if (_filteredOrders.isEmpty && orderProvider.orders.isNotEmpty) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              setState(() {
+                _filteredOrders = List.from(orderProvider.orders);
+              });
+            }
+          });
         }
         
         return Scaffold(
@@ -720,7 +818,11 @@ class _OrderPageState extends State<OrderPage> {
                 child: _filteredOrders.isEmpty
                     ? const Center(child: Text('No orders found'))
                     : ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    bottom: 80, // Add bottom padding to prevent FAB overlap
+                  ),
                   itemCount: _filteredOrders.length,
                   itemBuilder: (context, index) {
                     final order = _filteredOrders[index];
@@ -949,23 +1051,6 @@ class _OrderPageState extends State<OrderPage> {
                                         ),
                                         IconButton(
                                           icon: const Icon(
-                                            Icons.print,
-                                            color: Colors.black54,
-                                            size: 20,
-                                          ),
-                                          onPressed: () {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(
-                                                content: Text("Print ${order.orderNumber}"),
-                                              ),
-                                            );
-                                          },
-                                          tooltip: 'Print Order',
-                                          padding: EdgeInsets.zero,
-                                          constraints: const BoxConstraints(),
-                                        ),
-                                        IconButton(
-                                          icon: const Icon(
                                             Icons.share,
                                             color: AppColors.primary,
                                             size: 20,
@@ -1087,14 +1172,6 @@ class _OrderPageState extends State<OrderPage> {
                         icon: Icon(Icons.delete, color: Colors.red[300]),
                         onPressed: _selectedOrderNumbers.isNotEmpty ? _bulkDelete : null,
                         tooltip: 'Delete Selected',
-                      ),
-                      IconButton(
-                        icon: const Icon(
-                          Icons.print,
-                          color: Colors.black54,
-                        ),
-                        onPressed: _selectedOrderNumbers.isNotEmpty ? _bulkPrint : null,
-                        tooltip: 'Print Selected',
                       ),
                       IconButton(
                         icon: const Icon(
